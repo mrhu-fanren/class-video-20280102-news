@@ -581,6 +581,55 @@ section.player-card video {
   margin-left: 8px;
 }
 
+/* 详细介绍：默认收起的可折叠块 */
+.intro {
+  margin-top: 14px;
+  border: 1px solid rgba(255,255,255,.6);
+  border-radius: 12px;
+  background: rgba(255,255,255,.4);
+  overflow: hidden;
+}
+.intro > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+.intro > summary::-webkit-details-marker { display: none; }
+.intro > summary::before {
+  content: "▸";
+  font-size: 11px;
+  transition: transform .2s;
+}
+.intro[open] > summary::before { transform: rotate(90deg); }
+.intro-body {
+  padding: 0 16px 14px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.intro-full {
+  margin-top: 14px;
+  padding: 14px 16px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.7;
+  border: 1px solid rgba(255,255,255,.6);
+  border-radius: 12px;
+  background: rgba(255,255,255,.4);
+}
+
+/* 播放页：视频与评论区间距收紧 */
+section.player-card { margin: 0 auto 14px; }
+.cmt-bar { padding: 6px 0 12px; }
+
+
 /* ================================================================
    PASSWORD GATE — crystal lock
    ================================================================ */
