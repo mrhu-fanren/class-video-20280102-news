@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>视频专区 · 初2028届2班新闻电台</title>
+  <meta name="description" content="初2028届2班新闻电台全部视频归档。" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <div class="logo">
+        <span class="dot"></span>
+        <div>新闻电台<small>初2028届 · 2班</small></div>
+      </div>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="videos.html">视频专区</a>
+        <a href="index.html#about">关于</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="section">
+      <h3>视频专区</h3>
+      <div class="hint">按时间倒序排列，点击即可观看每一期班级新闻。</div>
+      <div class="grid" id="list"><!-- 由 videos.js 渲染 --></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">初2028届2班 · 新闻电台 ｜ 班级内部交流用途，请勿外传 ｜ <a href="dashboard.html" style="color:var(--ink-soft);text-decoration:underline;">数据看板</a></div>
+  </footer>
+
+  <div id="guestbook" style="max-width:960px;margin:0 auto 30px;padding:0 20px;"></div>
+
+  <script src="js/store.js"></script>
+  <script src="js/videos.js"></script>
+  <script src="js/gate.js"></script>
+  <script src="js/guestbook.js"></script>
+  <script>
+    (async function () {
+      var list = document.getElementById("list");
+      var videos = window.VIDEOS || [];
+      if (!videos.length) { list.innerHTML = '<p>暂无视频，敬请期待～</p>'; return; }
+      var counts = await Store.getAllCommentCounts();
+      list.innerHTML = videos.map(function (v, i) {
+        var no = String(videos.length - i).padStart(2, "0");
+        return '<div class="card">' +
+          '<a href="play.html?id=' + v.id + '"><div class="thumb">' + no + '</div></a>' +
+          '<div class="body">' +
+            '<div class="date">' + v.date + '</div>' +
+            '<h4><a href="play.html?id=' + v.id + '">' + v.title + '</a></h4>' +
+            '<p>' + v.desc + '</p>' +
+            '<a class="cmt-btn" style="margin-top:10px;" href="comments.html?vid=' + v.id + '">💬 评论 (' + (counts[v.id] || 0) + ')</a>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    })();
+  </script>
+</body>
+</html>

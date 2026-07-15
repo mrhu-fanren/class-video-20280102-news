@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>数据看板 · 初2028届2班新闻电台</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <div class="logo">
+        <span class="dot"></span>
+        <div>新闻电台<small>数据看板</small></div>
+      </div>
+      <nav class="nav"><a href="index.html">返回首页</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="section">
+      <h3>📊 班级数据收集</h3>
+      <div class="hint">本页仅供班主任/管理员查看，密码：liulaoshi</div>
+
+      <div class="stat-grid" id="stats"></div>
+
+      <h4 style="margin:10px 0 8px;font-size:17px;">到访总名单（按成员）</h4>
+      <table class="vt" id="vt">
+        <thead><tr><th>成员</th><th>首次到访</th><th>最近到访</th><th>到访次数</th><th>操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="detail" id="detail" style="display:none;">
+        <h4 id="detailTitle"></h4>
+        <table class="vt"><thead><tr><th>#</th><th>到访时间</th></tr></thead><tbody id="detailBody"></tbody></table>
+        <button class="link-btn" id="closeDetail" style="margin-top:10px;">收起</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">初2028届2班 · 新闻电台 ｜ 数据看板</div>
+  </footer>
+
+  <script src="js/store.js"></script>
+  <script>
+    // ---- 看板独立密码门（密码由后端 stats 接口校验）----
+    (function () {
+      function stat(n, l) {
+        return '<div class="stat"><div class="num">' + n + '</div><div class="lbl">' + l + '</div></div>';
+      }
+      function renderDash(stats) {
+        var visits = stats.visits || [];
+        var gb = stats.guestbook || [];
+        var cmt = stats.commentCount || 0;
+
+        // 按成员聚合
+        var map = {};
+        visits.forEach(function (v) {
+          if (!map[v.name]) map[v.name] = [];
+          map[v.name].push(v.time);
+        });
+        var members = Object.keys(map).map(function (n) {
+          var ts = map[n].slice().sort(function (a, b) { return a - b; });
+          return { name: n, first: ts[0], last: ts[ts.length - 1], count: ts.length };
+        });
+        members.sort(function (a, b) { return b.last - a.last; });
+
+        document.getElementById("stats").innerHTML =
+          stat(stats.totalVisits != null ? stats.totalVisits : visits.length, "总到访人次") +
+          stat(stats.memberCount != null ? stats.memberCount : members.length, "到访成员数") +
+          stat(cmt, "视频评论数") +
+          stat(stats.guestbookCount != null ? stats.guestbookCount : gb.length, "留言板条数");
+
+        var tbody = document.querySelector("#vt tbody");
+        tbody.innerHTML = members.length
+          ? members.map(function (m) {
+              return '<tr><td><b>' + Store.esc(m.name) + '</b></td>' +
+                '<td>' + Store.fmt(m.first) + '</td>' +
+                '<td>' + Store.fmt(m.last) + '</td>' +
+                '<td>' + m.count + '</td>' +
+                '<td><button class="link-btn" data-name="' + Store.esc(m.name) + '">查看完整记录</button></td></tr>';
+            }).join("")
+          : '<tr><td colspan="5" style="color:var(--ink-soft);">暂无到访记录。</td></tr>';
+
+        tbody.querySelectorAll(".link-btn").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var name = b.getAttribute("data-name");
+            var recs = visits.filter(function (v) { return v.name === name; })
+                            .sort(function (a, b) { return b.time - a.time; });
+            document.getElementById("detailTitle").textContent = "「" + name + "」完整到访记录";
+            document.getElementById("detailBody").innerHTML =
+              recs.map(function (r, i) { return '<tr><td>' + (i + 1) + '</td><td>' + Store.fmt(r.time) + '</td></tr>'; }).join("");
+            document.getElementById("detail").style.display = "block";
+            document.getElementById("detail").scrollIntoView({ behavior: "smooth" });
+          });
+        });
+        document.getElementById("closeDetail").addEventListener("click", function () {
+          document.getElementById("detail").style.display = "none";
+        });
+      }
+
+      var gate = document.createElement("div");
+      gate.id = "gate";
+      gate.innerHTML =
+        '<div class="box"><div class="lock">🛡️</div>' +
+        '<h2>数据看板</h2><p>请输入管理密码</p>' +
+        '<input id="dpw" type="password" placeholder="管理密码" autocomplete="off" />' +
+        '<button id="denter">查看</button><div class="err" id="derr"></div></div>';
+      document.body.appendChild(gate);
+      document.body.style.overflow = "hidden";
+      var input = gate.querySelector("#dpw");
+      var err = gate.querySelector("#derr");
+      input.focus();
+      function go() {
+        var pw = input.value.trim();
+        if (!pw) { err.textContent = "请输入密码。"; return; }
+        Store.getStats(pw).then(function (stats) {
+          if (!stats || stats.error === "unauthorized") {
+            err.textContent = "密码错误。"; input.value = ""; input.focus(); return;
+          }
+          gate.remove(); document.body.style.overflow = "";
+          renderDash(stats);
+        });
+      }
+      gate.querySelector("#denter").addEventListener("click", go);
+      input.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+    })();
+  </script>
+</body>
+</html>

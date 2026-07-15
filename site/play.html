@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>播放 · 初2028届2班新闻电台</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <div class="logo">
+        <span class="dot"></span>
+        <div>新闻电台<small>初2028届 · 2班</small></div>
+      </div>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="videos.html">视频专区</a>
+        <a href="index.html#about">关于</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="player-card" id="stage"><!-- 由脚本渲染 --></section>
+    <div class="cmt-bar" id="cmtBar"></div>
+    <p style="margin-bottom:30px;"><a href="videos.html" style="color:var(--brand);">← 返回视频专区</a></p>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">初2028届2班 · 新闻电台 ｜ 班级内部交流用途，请勿外传 ｜ <a href="dashboard.html" style="color:var(--ink-soft);text-decoration:underline;">数据看板</a></div>
+  </footer>
+
+  <div id="guestbook" style="max-width:960px;margin:0 auto 30px;padding:0 20px;"></div>
+
+  <script src="js/store.js"></script>
+  <script src="js/videos.js"></script>
+  <script src="js/gate.js"></script>
+  <script src="js/guestbook.js"></script>
+  <script>
+    (async function () {
+      var params = new URLSearchParams(location.search);
+      var id = params.get("id");
+      var v = (window.VIDEOS || []).filter(function (x) { return x.id === id; })[0];
+      var stage = document.getElementById("stage");
+      if (!v) {
+        stage.innerHTML = '<div class="player-meta"><h2>未找到该视频</h2><p class="sub">请返回视频专区重新选择。</p></div>';
+        return;
+      }
+      document.title = v.title + " · 初2028届2班新闻电台";
+      stage.innerHTML =
+        '<video controls autoplay preload="metadata">' +
+          '<source src="' + v.file + '" type="video/mp4" />' +
+          '您的浏览器不支持视频播放。' +
+        '</video>' +
+        '<div class="player-meta">' +
+          '<h2>' + v.title + '</h2>' +
+          '<div class="sub">发布日期：' + v.date + '</div>' +
+          '<div class="tags">' +
+            (v.hosts || []).map(function (h) { return '<span class="tag">' + h + '</span>'; }).join('') +
+          '</div>' +
+          '<p style="margin-top:12px;color:var(--ink-soft);font-size:14px;">' + v.desc + '</p>' +
+        '</div>';
+      var cnt = (await Store.getComments(v.id)).length;
+      document.getElementById("cmtBar").innerHTML =
+        '<a class="cmt-btn" href="comments.html?vid=' + v.id + '">💬 进入评论区交流</a>' +
+        '<span class="cmt-count">' + cnt + ' 条评论</span>';
+    })();
+  </script>
+</body>
+</html>

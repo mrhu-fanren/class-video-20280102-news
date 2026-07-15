@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>初2028届2班 · 新闻电台</title>
+  <meta name="description" content="初2028届2班班级新闻电台，每周更新班级新闻播报视频。" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <div class="logo">
+        <span class="dot"></span>
+        <div>新闻电台<small>初2028届 · 2班</small></div>
+      </div>
+      <nav class="nav">
+        <a href="index.html">首页</a>
+        <a href="videos.html">视频专区</a>
+        <a href="#about">关于</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <span class="badge">🎙️ 每周更新 · 班级之声</span>
+      <h1>初2028届2班<br/>新闻电台</h1>
+      <p class="lead">这里是属于我们班的新闻频道——同学播报、班级新鲜事、活动风采，一期一会，记录我们的初中时光。</p>
+    </section>
+
+    <section class="player-card" id="latest"><!-- 最新一期由 videos.js 渲染 --></section>
+    <div class="cmt-bar" id="latestCmt"></div>
+
+    <section class="section" id="about">
+      <h3>关于新闻电台</h3>
+      <div class="about">
+        <p><strong>初2028届2班新闻电台</strong> 由全班同学共同运营，旨在锻炼表达、记录成长、凝聚班级。</p>
+        <p>每周围绕班级动态、校园生活、同学风采制作一期新闻播报，欢迎同学、家长和老师观看与留言建议。</p>
+        <p>想加入主播团或投稿？请联系班主任或班级管理员。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">初2028届2班 · 新闻电台 ｜ 班级内部交流用途，请勿外传 ｜ <a href="dashboard.html" style="color:var(--ink-soft);text-decoration:underline;">数据看板</a></div>
+  </footer>
+
+  <div id="guestbook" style="max-width:960px;margin:0 auto 30px;padding:0 20px;"></div>
+
+  <script src="js/store.js"></script>
+  <script src="js/videos.js"></script>
+  <script src="js/gate.js"></script>
+  <script src="js/guestbook.js"></script>
+  <script>
+    (function () {
+      var v = (window.VIDEOS || [])[0];
+      if (!v) return;
+      var el = document.getElementById("latest");
+      el.innerHTML =
+        '<video controls preload="metadata" poster="">' +
+          '<source src="' + v.file + '" type="video/mp4" />' +
+          '您的浏览器不支持视频播放。' +
+        '</video>' +
+        '<div class="player-meta">' +
+          '<h2>' + v.title + '</h2>' +
+          '<div class="sub">发布日期：' + v.date + '</div>' +
+          '<div class="tags">' +
+            '<span class="tag">最新一期</span>' +
+            (v.hosts || []).map(function (h) { return '<span class="tag">' + h + '</span>'; }).join('') +
+          '</div>' +
+          '<p style="margin-top:12px;color:var(--ink-soft);font-size:14px;">' + v.desc + '</p>' +
+        '</div>';
+      (async function () {
+        var cnt = (await Store.getComments(v.id)).length;
+        document.getElementById("latestCmt").innerHTML =
+          '<a class="cmt-btn" href="comments.html?vid=' + v.id + '">💬 评论区</a>' +
+          '<span class="cmt-count">' + cnt + ' 条评论</span>';
+      })();
+    })();
+  </script>
+</body>
+</html>

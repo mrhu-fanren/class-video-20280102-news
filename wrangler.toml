@@ -1,0 +1,10 @@
+name = "class2-news"
+pages_build_output_dir = "site"
+compatibility_date = "2024-09-23"
+
+# Cloudflare KV 存储绑定（用于到访、评论、留言的跨设备汇总）
+# 部署前执行：wrangler kv namespace create NEWS_KV
+# 把返回的 id 填到下面的 id 字段（preview 用 preview_id）
+[[kv_namespaces]]
+binding = "NEWS_KV"
+id = "REPLACE_WITH_YOUR_KV_ID"

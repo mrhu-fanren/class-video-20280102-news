@@ -1,0 +1,124 @@
+// ============================================================
+// 初2028届2班 · 新闻电台 — 数据层
+// 优先调用 Cloudflare Pages Functions (/api/*) 实现跨设备汇总；
+// 若后端不可用（纯静态/本地预览），自动回退到浏览器本地存储。
+// 切换后端无需改动任何页面代码。
+// ============================================================
+window.Store = (function () {
+  const K = {
+    name: "class2news_name",
+    visits: "class2news_visits",
+    comments: "class2news_comments",
+    guestbook: "class2news_guestbook"
+  };
+
+  function readLocal(key, def) {
+    try { const v = JSON.parse(localStorage.getItem(key)); return v == null ? def : v; }
+    catch (e) { return def; }
+  }
+  function writeLocal(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+  // 调用后端；网络/服务器不可用时返回 undefined（表示"无后端"）
+  async function tryApi(path, opts) {
+    try {
+      const res = await fetch(path, Object.assign({ headers: { "Content-Type": "application/json" } }, opts || {}));
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const ct = res.headers.get("content-type") || "";
+      return ct.includes("application/json") ? await res.json() : null;
+    } catch (e) { return undefined; }
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (m) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m];
+    });
+  }
+  function fmt(t) {
+    const d = new Date(t);
+    const p = function (x) { return String(x).padStart(2, "0"); };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
+           " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  return {
+    // ---- 当前用户名字（始终存本设备）----
+    getName: function () { return localStorage.getItem(K.name) || ""; },
+    setName: function (n) { localStorage.setItem(K.name, n); },
+    hasName: function () { return !!localStorage.getItem(K.name); },
+
+    // ---- 到访记录 ----
+    recordVisit: async function (name) {
+      const r = await tryApi("/api/visits", { method: "POST", body: JSON.stringify({ name }) });
+      if (r === undefined) {
+        const v = readLocal(K.visits, []);
+        v.push({ name: name, time: Date.now() });
+        writeLocal(K.visits, v);
+      }
+    },
+    getVisits: async function () {
+      const r = await tryApi("/api/visits");
+      return r !== undefined ? r : readLocal(K.visits, []);
+    },
+
+    // ---- 视频评论 ----
+    addComment: async function (vid, text) {
+      const r = await tryApi("/api/comments", { method: "POST", body: JSON.stringify({ vid: vid, name: Store.getName(), text: text }) });
+      if (r === undefined) {
+        const all = readLocal(K.comments, {});
+        all[vid] = all[vid] || [];
+        all[vid].unshift({ name: Store.getName(), text: text, time: Date.now() });
+        writeLocal(K.comments, all);
+      }
+    },
+    getComments: async function (vid) {
+      const r = await tryApi("/api/comments?vid=" + encodeURIComponent(vid));
+      return r !== undefined ? r : (readLocal(K.comments, {})[vid] || []);
+    },
+    getAllCommentCounts: async function () {
+      const r = await tryApi("/api/comments?all=1");
+      if (r !== undefined) return r;
+      const all = readLocal(K.comments, {});
+      const c = {}; for (const k in all) c[k] = all[k].length;
+      return c;
+    },
+
+    // ---- 留言板 ----
+    addGuestbook: async function (text) {
+      const r = await tryApi("/api/guestbook", { method: "POST", body: JSON.stringify({ name: Store.getName(), text: text }) });
+      if (r === undefined) {
+        const g = readLocal(K.guestbook, []);
+        g.unshift({ name: Store.getName(), text: text, time: Date.now() });
+        writeLocal(K.guestbook, g);
+      }
+    },
+    getGuestbook: async function () {
+      const r = await tryApi("/api/guestbook");
+      return r !== undefined ? r : readLocal(K.guestbook, []);
+    },
+
+    // ---- 看板统计（需管理密码）----
+    // 后端可用：服务端校验密码，错则返回 {error:"unauthorized"}
+    // 后端不可用：本地回退计算（本地本就无强保护）
+    getStats: async function (pw) {
+      try {
+        const res = await fetch("/api/stats?pw=" + encodeURIComponent(pw));
+        if (res.ok) return await res.json();
+        if (res.status === 401) return { error: "unauthorized" };
+        throw new Error("bad");
+      } catch (e) {
+        const visits = readLocal(K.visits, []);
+        const gb = readLocal(K.guestbook, []);
+        const all = readLocal(K.comments, {});
+        let cc = 0; for (const k in all) cc += all[k].length;
+        const m = {}; visits.forEach(function (v) { m[v.name] = (m[v.name] || 0) + 1; });
+        return {
+          visits: visits, guestbook: gb, commentCount: cc,
+          totalVisits: visits.length, memberCount: Object.keys(m).length, guestbookCount: gb.length
+        };
+      }
+    },
+
+    esc: esc,
+    fmt: fmt
+  };
+})();

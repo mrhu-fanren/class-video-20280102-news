@@ -1,0 +1,5 @@
+# 保护隐私：不要上传 WorkBuddy 的工作记忆
+.workbuddy/
+node_modules/
+.DS_Store
+*.log
