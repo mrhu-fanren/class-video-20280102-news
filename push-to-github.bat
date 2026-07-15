@@ -1,34 +1,70 @@
 @echo off
-setlocal
+setlocal EnableDelayedExpansion
 set "REPO=%~dp0"
 set "GIT="
 
-REM --- Try to locate git.exe (Git for Windows may not be in PATH for cmd) ---
+REM --- 1. PATH search ---
 for /f "delims=" %%i in ('where git 2^>nul') do (
   if not defined GIT set "GIT=%%i"
 )
-if exist "%ProgramFiles%\Git\cmd\git.exe" set "GIT=%ProgramFiles%\Git\cmd\git.exe"
-if exist "%ProgramFiles(x86)%\Git\cmd\git.exe" set "GIT=%ProgramFiles(x86)%\Git\cmd\git.exe"
-if exist "%ProgramFiles%\Git\bin\git.exe" set "GIT=%ProgramFiles%\Git\bin\git.exe"
-if exist "%ProgramFiles(x86)%\Git\bin\git.exe" set "GIT=%ProgramFiles(x86)%\Git\bin\git.exe"
+
+REM --- 2. Common install locations ---
+set "CANDIDATES[0]=%ProgramFiles%\Git\cmd\git.exe"
+set "CANDIDATES[1]=%ProgramFiles%\Git\bin\git.exe"
+set "CANDIDATES[2]=%ProgramFiles(x86)%\Git\cmd\git.exe"
+set "CANDIDATES[3]=%ProgramFiles(x86)%\Git\bin\git.exe"
+set "CANDIDATES[4]=%LOCALAPPDATA%\Programs\Git\cmd\git.exe"
+set "CANDIDATES[5]=%LOCALAPPDATA%\Programs\Git\bin\git.exe"
+set "CANDIDATES[6]=%USERPROFILE%\AppData\Local\Programs\Git\cmd\git.exe"
+set "CANDIDATES[7]=%LOCALAPPDATA%\Microsoft\WindowsApps\git.exe"
+set "CANDIDATES[8]=C:\Git\cmd\git.exe"
+set "CANDIDATES[9]=C:\Git\bin\git.exe"
+for /L %%n in (0,1,9) do (
+  if not defined GIT (
+    if exist "!CANDIDATES[%%n]!" set "GIT=!CANDIDATES[%%n]!"
+  )
+)
+
+REM --- 3. Recursive fallback on likely roots ---
+if not defined GIT (
+  for %%r in ("%ProgramFiles%" "%ProgramFiles(x86)%" "C:\Git" "%LOCALAPPDATA%") do (
+    if not defined GIT (
+      for /f "delims=" %%i in ('where /R "%%~r" git.exe 2^>nul') do (
+        if not defined GIT set "GIT=%%i"
+      )
+    )
+  )
+)
+
+REM --- Verify the found git actually runs ---
+if defined GIT (
+  "%GIT%" --version >nul 2>&1
+  if errorlevel 1 set "GIT="
+)
 
 if "%GIT%"=="" (
   echo ============================================================
-  echo  Git was not found on this computer.
-  echo  Option A: install "Git for Windows" from https://git-scm.com
-  echo  Option B: upload files via GitHub web (see DEPLOY.md, method 2)
+  echo  Could NOT find git.exe anywhere on this computer.
+  echo  Please tell me the output below so I can locate it:
+  echo ------------------------------------------------------------
+  echo PROGRAMFILES   = %ProgramFiles%
+  echo LOCALAPPDATA   = %LOCALAPPDATA%
+  echo Look for "git.exe" in:
+  echo   C:\Program Files\Git\
+  echo   C:\Users\mr hu\AppData\Local\Programs\Git\
+  echo   C:\Git\
   echo ============================================================
   pause
   exit /b 1
 )
 
 echo Using git : %GIT%
-echo Folder   : %REPO%
+echo Folder    : %REPO%
 cd /d "%REPO%"
 
 REM --- Make sure this folder is a git repo with the right remote ---
 if not exist "%REPO%.git" (
-  echo [init] No local repo found. Initializing...
+  echo [init] Initializing local repo...
   "%GIT%" init -b main
   "%GIT%" remote add origin https://github.com/mrhu-fanren/class-video-20280102-news.git
 ) else (
