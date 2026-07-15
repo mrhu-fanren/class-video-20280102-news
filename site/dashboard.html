@@ -21,11 +21,12 @@
     <section class="section">
       <h3>📊 班级数据收集</h3>
       <div class="hint">本页仅供班主任/管理员查看，密码：liulaoshi</div>
+      <div class="src-banner" id="srcBanner">正在检测数据来源…</div>
 
       <div class="stat-grid" id="stats"></div>
 
       <h4 style="margin:10px 0 8px;font-size:17px;">到访总名单（按成员）</h4>
-      <table class="vt" id="vt">
+      <table class="data-table" id="vt">
         <thead><tr><th>成员</th><th>首次到访</th><th>最近到访</th><th>到访次数</th><th>操作</th></tr></thead>
         <tbody></tbody>
       </table>
@@ -81,7 +82,7 @@
                 '<td>' + m.count + '</td>' +
                 '<td><button class="link-btn" data-name="' + Store.esc(m.name) + '">查看完整记录</button></td></tr>';
             }).join("")
-          : '<tr><td colspan="5" style="color:var(--ink-soft);">暂无到访记录。</td></tr>';
+          : '<tr><td colspan="5" style="color:var(--ink-soft);padding:18px;">暂无到访记录。同学访问网站后会自动汇总到这里；本地预览时仅记录本设备。</td></tr>';
 
         tbody.querySelectorAll(".link-btn").forEach(function (b) {
           b.addEventListener("click", function () {
@@ -121,6 +122,20 @@
           }
           gate.remove(); document.body.style.overflow = "";
           renderDash(stats);
+          updateSource();
+        });
+      }
+      function updateSource() {
+        var b = document.getElementById("srcBanner");
+        if (!b) return;
+        Store.ping().then(function (ok) {
+          if (ok) {
+            b.className = "src-banner ok";
+            b.textContent = "✅ 已连接服务器，以下为全班汇总数据";
+          } else {
+            b.className = "src-banner warn";
+            b.textContent = "⚠️ 未连接服务器（本地预览）：仅显示本设备数据。推送至 Cloudflare 并绑定 KV 后，即可全班跨设备汇总。";
+          }
         });
       }
       gate.querySelector("#denter").addEventListener("click", go);

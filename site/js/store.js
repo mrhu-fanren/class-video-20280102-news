@@ -118,6 +118,10 @@ window.Store = (function () {
       }
     },
 
+    ping: async function () {
+      try { const res = await fetch("/api/visits"); return res.ok; } catch (e) { return false; }
+    },
+
     esc: esc,
     fmt: fmt
   };

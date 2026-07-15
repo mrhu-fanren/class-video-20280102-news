@@ -110,7 +110,7 @@ for /L %%r in (0,1,3) do (
     echo Trying: !REMOTES[%%r]!
     "%GIT%" remote set-url origin "!REMOTES[%%r]!"
     "%GIT%" push -u origin main --force
-    if not errorlevel 1 set "PUSHED=1"
+    if not errorlevel 1 set PUSHED=1
   )
 )
 
