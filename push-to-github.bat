@@ -109,13 +109,8 @@ for /L %%r in (0,1,3) do (
     echo ------------------------------------------------------------
     echo Trying: !REMOTES[%%r]!
     "%GIT%" remote set-url origin "!REMOTES[%%r]!"
-    for /L %%a in (1,1,3) do (
-      if !PUSHED!==0 (
-        echo   attempt %%a ...
-        "%GIT%" push -u origin main --force 2>&1 && set "PUSHED=1"
-        if !PUSHED!==0 timeout /t 3 /nobreak >nul
-      )
-    )
+    "%GIT%" push -u origin main --force
+    if not errorlevel 1 set "PUSHED=1"
   )
 )
 
