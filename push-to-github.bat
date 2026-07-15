@@ -1,6 +1,26 @@
 @echo off
 setlocal EnableDelayedExpansion
 set "REPO=%~dp0"
+set "LOGFILE=%~dp0push-log.txt"
+
+echo [%date% %time%] === Push script start === > "%LOGFILE%"
+call :run >> "%LOGFILE%" 2>&1
+echo [%date% %time%] === Push script end === >> "%LOGFILE%"
+
+echo.
+echo ============================================================
+echo  Done. Full log saved to:
+echo  %LOGFILE%
+echo ============================================================
+echo.
+type "%LOGFILE%"
+echo.
+echo (If it says SUCCESS, go to Cloudflare next.)
+echo (If it says PUSH FAILED, send me this log text.)
+pause
+exit /b
+
+:run
 set "GIT="
 
 REM --- 1. PATH search ---
@@ -50,7 +70,6 @@ if "%GIT%"=="" (
   echo    C:\Users\mr hu\AppData\Local\Programs\Git\
   echo    C:\Git\
   echo ============================================================
-  pause
   exit /b 1
 )
 
@@ -111,4 +130,4 @@ if !PUSHED!==1 (
   echo      tell me and I will set git to use it.
   echo   B) Or upload via GitHub web (DEPLOY.md method 2).
 )
-pause
+goto :eof
