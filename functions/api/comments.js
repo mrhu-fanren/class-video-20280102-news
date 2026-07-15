@@ -1,19 +1,27 @@
 // GET  /api/comments?vid=ep01        -> 该视频评论列表
 // GET  /api/comments?all=1           -> 每个视频的评论数 {ep01: 3, ...}
 // POST /api/comments                 -> body {vid, name, text} 追加评论
+import { checkKV, json } from "./_kv.js";
+
 export async function onRequestGet({ request, env }) {
+  const bad = checkKV(env);
+  if (bad) return bad;
+
   const url = new URL(request.url);
   const all = await env.NEWS_KV.get("comments", { type: "json" }) || {};
   if (url.searchParams.get("all") === "1") {
     const counts = {};
     for (const k in all) counts[k] = all[k].length;
-    return Response.json(counts);
+    return json(counts);
   }
   const vid = url.searchParams.get("vid");
-  return Response.json(vid ? (all[vid] || []) : []);
+  return json(vid ? (all[vid] || []) : []);
 }
 
 export async function onRequestPost({ request, env }) {
+  const bad = checkKV(env);
+  if (bad) return bad;
+
   const body = await request.json().catch(() => ({}));
   if (!body.vid || !body.text) return new Response("vid & text required", { status: 400 });
   const all = await env.NEWS_KV.get("comments", { type: "json" }) || {};
@@ -24,5 +32,5 @@ export async function onRequestPost({ request, env }) {
     time: Date.now()
   });
   await env.NEWS_KV.put("comments", JSON.stringify(all));
-  return Response.json({ ok: true });
+  return json({ ok: true });
 }

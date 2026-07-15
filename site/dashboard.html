@@ -128,14 +128,9 @@
       function updateSource() {
         var b = document.getElementById("srcBanner");
         if (!b) return;
-        Store.ping().then(function (ok) {
-          if (ok) {
-            b.className = "src-banner ok";
-            b.textContent = "✅ 已连接服务器，以下为全班汇总数据";
-          } else {
-            b.className = "src-banner warn";
-            b.textContent = "⚠️ 未连接服务器（本地预览）：仅显示本设备数据。推送至 Cloudflare 并绑定 KV 后，即可全班跨设备汇总。";
-          }
+        Store.ping().then(function (result) {
+          b.className = result.ok ? "src-banner ok" : "src-banner warn";
+          b.textContent = result.msg;
         });
       }
       gate.querySelector("#denter").addEventListener("click", go);

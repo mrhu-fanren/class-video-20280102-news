@@ -119,7 +119,17 @@ window.Store = (function () {
     },
 
     ping: async function () {
-      try { const res = await fetch("/api/visits"); return res.ok; } catch (e) { return false; }
+      try {
+        const res = await fetch("/api/health");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        if (data && data.ok) {
+          return { ok: true, msg: "✅ 已连接服务器，以下为全班汇总数据" };
+        }
+        return { ok: false, msg: "⚠️ 后端未连接：" + (data && data.error ? data.error : "请检查 Cloudflare KV 绑定") };
+      } catch (e) {
+        return { ok: false, msg: "⚠️ 未连接服务器（本地预览）：仅显示本设备数据。推送至 Cloudflare 并绑定 KV 后，即可全班跨设备汇总。" };
+      }
     },
 
     esc: esc,
