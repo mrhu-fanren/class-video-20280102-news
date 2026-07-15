@@ -2,7 +2,9 @@ name = "class2-news"
 pages_build_output_dir = "site"
 compatibility_date = "2024-09-23"
 
-# 注意：本仓库通过 GitHub 连接部署（Pages + Git），
-# KV 绑定（变量名 NEWS_KV）请在 Cloudflare 后台设置：
-#   项目 -> Settings -> Variables and Secrets -> KV namespace bindings -> 添加
-# 不要在 wrangler.toml 里写占位 ID，否则函数发布会报 "Invalid KV namespace ID"。
+# 本仓库通过 GitHub 连接部署（Pages + Git）。
+# KV 命名空间已创建：class2news（id 见下方）。
+# 如果 Cloudflare 后台 Bindings 的 Add 按钮点不开，直接通过本文件绑定即可。
+[[kv_namespaces]]
+binding = "NEWS_KV"
+id = "92e4c028a2dc46f09139e048563a5aec"
