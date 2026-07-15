@@ -29,8 +29,11 @@
       <p class="lead">这里是属于我们班的新闻频道——同学播报、班级新鲜事、活动风采，一期一会，记录我们的初中时光。</p>
     </section>
 
-    <section class="latest-wrap" id="latest"><!-- 最新一期由 videos.js 渲染 --></section>
-    <div class="cmt-bar" id="latestCmt"></div>
+    <section class="section" id="videos">
+      <h3>视频专区</h3>
+      <div class="hint">班级新闻播报，每排 5 个，点击即可观看每一期。</div>
+      <div class="vlist" id="list"><!-- 由 videos.js 渲染 --></div>
+    </section>
 
     <section class="section" id="about">
       <h3>关于新闻电台</h3>
@@ -56,48 +59,27 @@
   <script src="js/gate.js"></script>
   <script src="js/guestbook.js"></script>
   <script>
-    (function () {
-      var v = (window.VIDEOS || [])[0];
-      if (!v) return;
-      var el = document.getElementById("latest");
-      el.innerHTML =
-        '<div class="ls-video" id="lsVideo">' +
-          '<video id="lsV" preload="metadata" playsinline>' +
-            '<source src="' + v.file + '" type="video/mp4" />' +
-          '</video>' +
-          '<button class="ls-play" id="lsPlay" type="button" aria-label="观看">▶</button>' +
-          '<span class="ls-watch">点击观看 · 全屏播放</span>' +
-        '</div>' +
-        '<div class="player-meta">' +
-          '<h2>' + v.title + '</h2>' +
-          '<div class="sub">发布日期：' + v.date + '</div>' +
-          '<div class="tags">' +
-            '<span class="tag">最新一期</span>' +
-            (v.hosts || []).map(function (h) { return '<span class="tag">' + h + '</span>'; }).join('') +
+    (async function () {
+      var list = document.getElementById("list");
+      var videos = window.VIDEOS || [];
+      if (!videos.length) { list.innerHTML = '<p>暂无视频，敬请期待～</p>'; return; }
+      var counts = await Store.getAllCommentCounts();
+      list.innerHTML = videos.map(function (v, i) {
+        var no = String(videos.length - i).padStart(2, "0");
+        return '<a class="vcard" href="play.html?id=' + v.id + '">' +
+          '<div class="cover">' +
+            '<span class="no">' + no + '</span>' +
+            '<span class="play-ic">▶</span>' +
           '</div>' +
-          (v.introOpen
-            ? '<p class="intro-full">' + v.desc + '</p>'
-            : '<details class="intro"><summary>详细介绍</summary><div class="intro-body">' + v.desc + '</div></details>') +
-        '</div>';
-
-      function watch() {
-        var video = document.getElementById("lsV");
-        var go = function () { window.location.href = "play.html?vid=" + encodeURIComponent(v.id); };
-        try {
-          if (video.requestFullscreen) {
-            video.requestFullscreen().then(function () { video.play(); }).catch(go);
-          } else if (video.webkitRequestFullscreen) {
-            video.webkitRequestFullscreen(); video.play();
-          } else { go(); }
-        } catch (e) { go(); }
-      }
-      document.getElementById("lsVideo").addEventListener("click", watch);
-      (async function () {
-        var cnt = (await Store.getComments(v.id)).length;
-        document.getElementById("latestCmt").innerHTML =
-          '<a class="cmt-btn" href="comments.html?vid=' + v.id + '">💬 评论区</a>' +
-          '<span class="cmt-count">' + cnt + ' 条评论</span>';
-      })();
+          '<div class="vbody">' +
+            '<div class="vtitle">' + v.title + '</div>' +
+            '<div class="vmeta">' +
+              '<span>' + v.date + '</span>' +
+              '<span class="vcomments">💬 ' + (counts[v.id] || 0) + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</a>';
+      }).join('');
     })();
   </script>
 </body>
