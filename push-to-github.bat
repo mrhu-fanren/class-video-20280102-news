@@ -45,14 +45,10 @@ if defined GIT (
 if "%GIT%"=="" (
   echo ============================================================
   echo  Could NOT find git.exe anywhere on this computer.
-  echo  Please tell me the output below so I can locate it:
-  echo ------------------------------------------------------------
-  echo PROGRAMFILES   = %ProgramFiles%
-  echo LOCALAPPDATA   = %LOCALAPPDATA%
-  echo Look for "git.exe" in:
-  echo   C:\Program Files\Git\
-  echo   C:\Users\mr hu\AppData\Local\Programs\Git\
-  echo   C:\Git\
+  echo  Look for "git.exe" in:
+  echo    C:\Program Files\Git\
+  echo    C:\Users\mr hu\AppData\Local\Programs\Git\
+  echo    C:\Git\
   echo ============================================================
   pause
   exit /b 1
@@ -66,23 +62,14 @@ REM --- Make sure this folder is a git repo with the right remote ---
 if not exist "%REPO%.git" (
   echo [init] Initializing local repo...
   "%GIT%" init -b main
-  "%GIT%" remote add origin https://github.com/mrhu-fanren/class-video-20280102-news.git
-) else (
-  "%GIT%" remote get-url origin >nul 2>&1 || "%GIT%" remote add origin https://github.com/mrhu-fanren/class-video-20280102-news.git
 )
+"%GIT%" remote get-url origin >nul 2>&1 || "%GIT%" remote add origin https://github.com/mrhu-fanren/class-video-20280102-news.git
 
 "%GIT%" config user.email "class2news@users.noreply.github.com"
 "%GIT%" config user.name "class2-news"
+"%GIT%" config --global http.version HTTP/1.1
 
-REM --- Optional: skip pull with "skip-pull" argument ---
-if "%~1"=="skip-pull" (
-  echo [skip] pull skipped
-) else (
-  echo [1/3] Pulling latest from GitHub...
-  "%GIT%" pull origin main --allow-unrelated-histories --no-edit
-)
-
-echo [2/3] Adding and committing...
+echo [1/3] Adding and committing...
 "%GIT%" add -A
 "%GIT%" diff --cached --quiet
 if errorlevel 1 (
@@ -91,10 +78,37 @@ if errorlevel 1 (
   echo No new changes to commit.
 )
 
-echo [3/3] Pushing to GitHub...
-"%GIT%" push -u origin main
+echo [2/3] Pushing to GitHub (will try mirror if direct fails)...
+set "REMOTES[0]=https://github.com/mrhu-fanren/class-video-20280102-news.git"
+set "REMOTES[1]=https://ghproxy.net/https://github.com/mrhu-fanren/class-video-20280102-news.git"
+set "REMOTES[2]=https://mirror.ghproxy.com/https://github.com/mrhu-fanren/class-video-20280102-news.git"
+set "REMOTES[3]=https://gitclone.com/github.com/mrhu-fanren/class-video-20280102-news.git"
 
-echo.
-echo If a URL or "Create a pull request" appeared above, it worked.
-echo Next step: deploy on Cloudflare (see DEPLOY.md step 2).
+set "PUSHED=0"
+for /L %%r in (0,1,3) do (
+  if !PUSHED!==0 (
+    echo ------------------------------------------------------------
+    echo Trying: !REMOTES[%%r]!
+    "%GIT%" remote set-url origin "!REMOTES[%%r]!"
+    for /L %%a in (1,1,3) do (
+      if !PUSHED!==0 (
+        echo   attempt %%a ...
+        "%GIT%" push -u origin main --force 2>&1 && set "PUSHED=1"
+        if !PUSHED!==0 timeout /t 3 /nobreak >nul
+      )
+    )
+  )
+)
+
+echo ------------------------------------------------------------
+if !PUSHED!==1 (
+  echo SUCCESS - code is now on GitHub.
+  echo Next step: deploy on Cloudflare (see DEPLOY.md step 2).
+) else (
+  echo PUSH FAILED via all methods.
+  echo Your network is blocking GitHub git. Two options:
+  echo   A) If you have a proxy/VPN tool (Clash, v2ray, etc.),
+  echo      tell me and I will set git to use it.
+  echo   B) Or upload via GitHub web (DEPLOY.md method 2).
+)
 pause
