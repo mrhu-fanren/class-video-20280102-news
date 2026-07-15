@@ -6,7 +6,7 @@
 ## 一、把代码放进 GitHub（首次做）
 
 **方法 1（最省事，推荐）：双击脚本**
-在本项目文件夹里双击 `push-to-github.bat`，按提示登录 GitHub 即可自动推送。
+在本项目文件夹里双击 `push-to-github.bat` 即可。脚本会自动找到 git 的安装位置（即使 git 不在命令行 PATH 里也能用），并按提示登录 GitHub 完成推送。若弹出浏览器登录 GitHub，登录一下即可。
 
 **方法 2（完全不用命令行）：网页拖拽**
 1. 打开 https://github.com/mrhu-fanren/class-video-20280102-news
