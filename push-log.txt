@@ -1,1 +1,9 @@
-[2026/07/16 周四 21:49:13.27] === Push script start === 
+[2026/07/16 周四 21:52:12.37] === Push script start === 
+============================================================
+ Could NOT find git.exe anywhere on this computer.
+ Look for "git.exe" in:
+   C:\Program Files\Git\
+   C:\Users\mr hu\AppData\Local\Programs\Git\
+   C:\Git\
+============================================================
+[2026/07/16 周四 21:52:12.48] === Push script end === 
