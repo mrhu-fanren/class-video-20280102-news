@@ -23,7 +23,17 @@
 
   <main class="wrap">
     <section class="player-card" id="stage"><!-- 由脚本渲染 --></section>
-    <div class="cmt-bar" id="cmtBar"></div>
+
+    <section class="section comment-section">
+      <h3>💬 评论区 <span class="cmt-count" id="cmtCount">0 条评论</span></h3>
+      <div class="hint">就这期新闻和大家交流一下吧～</div>
+      <div id="cmtList" class="gb-list" style="margin:16px 0 24px;"></div>
+      <form id="cmtForm" class="gb-form">
+        <textarea id="cmtText" rows="3" placeholder="写下你的评论…（需先登录名字）" required></textarea>
+        <button type="submit">发表评论</button>
+      </form>
+    </section>
+
     <p style="margin-bottom:30px;"><a href="videos.html" style="color:var(--brand);">← 返回视频专区</a></p>
   </main>
 
@@ -67,10 +77,37 @@
             ? '<p class="intro-full">' + v.desc + '</p>'
             : '<details class="intro"><summary>详细介绍</summary><div class="intro-body">' + v.desc + '</div></details>') +
         '</div>';
-      var cnt = (await Store.getComments(v.id)).length;
-      document.getElementById("cmtBar").innerHTML =
-        '<a class="cmt-btn" href="comments.html?vid=' + v.id + '">💬 进入评论区交流</a>' +
-        '<span class="cmt-count">' + cnt + ' 条评论</span>';
+      var vid = v.id;
+
+      async function renderComments() {
+        var list = await Store.getComments(vid);
+        document.getElementById("cmtCount").textContent = list.length + " 条评论";
+        document.getElementById("cmtList").innerHTML = list.length
+          ? list.map(function (c) {
+              return '<div class="gb-item">' +
+                '<div class="gb-meta"><b>' + Store.esc(c.name || "匿名") + '</b>' +
+                '<span>' + Store.fmt(c.time) + '</span></div>' +
+                '<div class="gb-text">' + Store.esc(c.text) + '</div>' +
+              '</div>';
+            }).join("")
+          : '<p class="gb-empty">还没有评论，来做第一个发言的人吧～</p>';
+      }
+      renderComments();
+
+      document.getElementById("cmtForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var ta = document.getElementById("cmtText");
+        var t = ta.value.trim();
+        if (!t) return;
+        if (!Store.hasName()) {
+          alert("请先回到首页输入密码并登录名字，再来评论～");
+          location.href = "index.html";
+          return;
+        }
+        await Store.addComment(vid, t);
+        ta.value = "";
+        renderComments();
+      });
     })();
   </script>
 </body>
