@@ -25,9 +25,9 @@
 
       <div class="stat-grid" id="stats"></div>
 
-      <h4 style="margin:10px 0 8px;font-size:17px;">最近到访记录（IP · 时间）</h4>
+      <h4 style="margin:10px 0 8px;font-size:17px;">最近到访记录（IP · 时间 · 状态）</h4>
       <table class="data-table" id="vt">
-        <thead><tr><th>#</th><th>访客 IP</th><th>到访时间</th></tr></thead>
+        <thead><tr><th>#</th><th>访客 IP</th><th>到访时间</th><th>校验状态</th></tr></thead>
         <tbody></tbody>
       </table>
     </section>
@@ -49,25 +49,31 @@
         var gb = stats.guestbook || [];
         var cmt = stats.commentCount || 0;
 
-        // 四项访问指标
+        // 访问指标
         document.getElementById("stats").innerHTML =
           stat(stats.totalVisits != null ? stats.totalVisits : visits.length, "总访问次数") +
           stat(stats.dailyVisits != null ? stats.dailyVisits : 0, "每日访问总次数") +
           stat(stats.dailyPeople != null ? stats.dailyPeople : 0, "每日访问总人数") +
           stat(stats.totalPeople != null ? stats.totalPeople : 0, "访问总人数") +
+          stat(stats.failedAttempts != null ? stats.failedAttempts : 0, "密码错误次数") +
           stat(cmt, "视频评论数") +
           stat(stats.guestbookCount != null ? stats.guestbookCount : gb.length, "留言板条数");
 
-        // 最近到访记录（IP + 时间），倒序取前 50 条
+        // 最近到访记录（IP + 时间 + 状态），倒序取前 50 条
         var recs = visits.slice().sort(function (a, b) { return b.time - a.time; }).slice(0, 50);
         var tbody = document.querySelector("#vt tbody");
         tbody.innerHTML = recs.length
           ? recs.map(function (r, i) {
+              var fail = r.status === "fail";
+              var badge = fail
+                ? '<span style="color:#dc2626;font-weight:700;">✗ 失败</span>'
+                : '<span style="color:#16a34a;font-weight:700;">✓ 成功</span>';
               return '<tr><td>' + (i + 1) + '</td>' +
                 '<td><b>' + Store.esc(r.ip || "未知") + '</b></td>' +
-                '<td>' + Store.fmt(r.time) + '</td></tr>';
+                '<td>' + Store.fmt(r.time) + '</td>' +
+                '<td>' + badge + '</td></tr>';
             }).join("")
-          : '<tr><td colspan="3" style="color:var(--ink-soft);padding:18px;">暂无到访记录。同学访问网站后会自动汇总到这里；本地预览时仅记录本设备（IP 记为「本地预览」）。</td></tr>';
+          : '<tr><td colspan="4" style="color:var(--ink-soft);padding:18px;">暂无到访记录。同学访问网站后会自动汇总到这里；本地预览时仅记录本设备（IP 记为「本地预览」）。</td></tr>';
       }
 
       var gate = document.createElement("div");

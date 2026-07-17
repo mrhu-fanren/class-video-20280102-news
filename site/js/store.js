@@ -43,12 +43,15 @@ window.Store = (function () {
   function dayKey(ts) {
     return new Date(ts + 8 * 3600 * 1000).toISOString().slice(0, 10);
   }
-  // 由到访记录(含 {ip,time}) 计算四项访问指标
+  // 由到访记录(含 {ip,time,status}) 计算访问指标
+  // 仅「成功」记录计入访问量，「失败」单独统计为密码错误次数
   function computeVisitStats(visits, guestbook, commentCount) {
     const today = dayKey(Date.now());
     const ipSet = {}, dayIpSet = {};
-    let dailyVisits = 0;
+    let dailyVisits = 0, totalVisits = 0, failedAttempts = 0;
     visits.forEach(function (v) {
+      if (v.status === "fail") { failedAttempts++; return; }
+      totalVisits++;
       const ip = v.ip || "未知";
       ipSet[ip] = 1;
       if (dayKey(v.time) === today) { dailyVisits++; dayIpSet[ip] = 1; }
@@ -57,10 +60,11 @@ window.Store = (function () {
       visits: visits,
       guestbook: guestbook,
       commentCount: commentCount,
-      totalVisits: visits.length,        // 总访问次数
+      totalVisits: totalVisits,          // 总访问次数（成功）
       dailyVisits: dailyVisits,          // 每日访问总次数
       dailyPeople: Object.keys(dayIpSet).length, // 每日访问总人数
       totalPeople: Object.keys(ipSet).length,     // 访问总人数
+      failedAttempts: failedAttempts,    // 密码校验失败次数
       guestbookCount: (guestbook || []).length
     };
   }
@@ -71,27 +75,34 @@ window.Store = (function () {
     setName: function (n) { localStorage.setItem(K.name, n); },
     hasName: function () { return !!localStorage.getItem(K.name); },
 
-    // ---- 到访记录（只记 IP + 时间，不记姓名）----
-    recordVisit: async function () {
-      const r = await tryApi("/api/visits", { method: "POST", body: JSON.stringify({}) });
+    // ---- 密码校验（后端优先，避免密码暴露于前端）----
+    // 返回 true=通过 / false=不通过。同时由服务端记录 IP+时间+状态。
+    // 无后端（本地预览）时回退到前端 localPw 校验，并在本地记录状态。
+    verifyGate: async function (pw, localPw) {
+      const r = await tryApi("/api/gate", { method: "POST", body: JSON.stringify({ pw: pw }) });
       if (r === undefined) {
+        // 无后端：本地校验 + 本地记录（带状态）
+        const ok = (pw === localPw);
         const v = readLocal(K.visits, []);
-        v.push({ ip: "本地预览", time: Date.now() });
+        v.push({ ip: "本地预览", time: Date.now(), status: ok ? "ok" : "fail" });
         writeLocal(K.visits, v);
+        return ok;
       }
+      return !!(r && r.ok);
     },
     getVisits: async function () {
       const r = await tryApi("/api/visits");
       return r !== undefined ? r : readLocal(K.visits, []);
     },
 
-    // ---- 视频评论 ----
-    addComment: async function (vid, text) {
-      const r = await tryApi("/api/comments", { method: "POST", body: JSON.stringify({ vid: vid, name: Store.getName(), text: text }) });
+    // ---- 视频评论（姓名可选，留空则匿名）----
+    addComment: async function (vid, text, name) {
+      const nm = (name || "").trim();
+      const r = await tryApi("/api/comments", { method: "POST", body: JSON.stringify({ vid: vid, name: nm, text: text }) });
       if (r === undefined) {
         const all = readLocal(K.comments, {});
         all[vid] = all[vid] || [];
-        all[vid].unshift({ name: Store.getName(), text: text, time: Date.now() });
+        all[vid].unshift({ name: nm || "匿名", text: text, time: Date.now() });
         writeLocal(K.comments, all);
       }
     },
@@ -107,12 +118,13 @@ window.Store = (function () {
       return c;
     },
 
-    // ---- 留言板 ----
-    addGuestbook: async function (text) {
-      const r = await tryApi("/api/guestbook", { method: "POST", body: JSON.stringify({ name: Store.getName(), text: text }) });
+    // ---- 留言板（姓名可选，留空则匿名）----
+    addGuestbook: async function (text, name) {
+      const nm = (name || "").trim();
+      const r = await tryApi("/api/guestbook", { method: "POST", body: JSON.stringify({ name: nm, text: text }) });
       if (r === undefined) {
         const g = readLocal(K.guestbook, []);
-        g.unshift({ name: Store.getName(), text: text, time: Date.now() });
+        g.unshift({ name: nm || "匿名", text: text, time: Date.now() });
         writeLocal(K.guestbook, g);
       }
     },

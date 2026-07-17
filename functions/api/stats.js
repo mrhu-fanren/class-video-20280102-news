@@ -33,8 +33,10 @@ export async function onRequestGet({ request, env }) {
 
   const today = dayKey(Date.now());
   const ipSet = {}, dayIpSet = {};
-  let dailyVisits = 0;
+  let dailyVisits = 0, totalVisits = 0, failedAttempts = 0;
   visits.forEach(function (v) {
+    if (v.status === "fail") { failedAttempts++; return; }  // 失败单独统计
+    totalVisits++;
     const ip = v.ip || "未知";
     ipSet[ip] = 1;
     if (dayKey(v.time) === today) { dailyVisits++; dayIpSet[ip] = 1; }
@@ -44,10 +46,11 @@ export async function onRequestGet({ request, env }) {
     visits,
     guestbook,
     commentCount,
-    totalVisits: visits.length,              // 总访问次数
+    totalVisits: totalVisits,                // 总访问次数（成功）
     dailyVisits: dailyVisits,                // 每日访问总次数
     dailyPeople: Object.keys(dayIpSet).length, // 每日访问总人数
     totalPeople: Object.keys(ipSet).length,  // 访问总人数
+    failedAttempts: failedAttempts,          // 密码校验失败次数
     guestbookCount: guestbook.length
   });
 }

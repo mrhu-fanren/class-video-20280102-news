@@ -10,9 +10,10 @@
     const list = await Store.getGuestbook();
     el.innerHTML =
       '<div class="gb-head"><h3>💬 班级留言板</h3>' +
-      '<p class="hint">写下你想对班级说的话，登录名字后大家一起看～</p></div>' +
+      '<p class="hint">写下你想对班级说的话，大家一起看～</p></div>' +
       '<form id="gb-form" class="gb-form">' +
-        '<textarea id="gb-text" rows="3" placeholder="说点什么…（需要先登录名字）" required></textarea>' +
+        '<input id="gb-name" type="text" maxlength="20" placeholder="你的昵称（选填，留空则显示为「匿名」）" autocomplete="off" />' +
+        '<textarea id="gb-text" rows="3" placeholder="说点什么…" required></textarea>' +
         '<button type="submit">发送留言</button>' +
       '</form>' +
       '<div class="gb-list">' +
@@ -27,17 +28,17 @@
           : '<p class="gb-empty">还没有留言，快来抢沙发～</p>') +
       '</div>';
 
+    const nameEl = el.querySelector("#gb-name");
+    if (nameEl && Store.getName()) nameEl.value = Store.getName();
+
     el.querySelector("#gb-form").addEventListener("submit", async function (e) {
       e.preventDefault();
       const ta = el.querySelector("#gb-text");
       const t = ta.value.trim();
       if (!t) return;
-      if (!Store.hasName()) {
-        alert("请先回到首页输入密码并登录你的名字，再来留言～");
-        location.href = "index.html";
-        return;
-      }
-      await Store.addGuestbook(t);
+      const nm = nameEl ? nameEl.value.trim() : "";
+      if (nm) Store.setName(nm);
+      await Store.addGuestbook(t, nm);
       render();
     });
   }

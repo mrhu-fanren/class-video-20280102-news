@@ -28,7 +28,8 @@
       <div id="clist" class="gb-list" style="margin:16px 0 24px;"></div>
 
       <form id="cform" class="gb-form">
-        <textarea id="ctext" rows="3" placeholder="写下你的评论…（需先登录名字）" required></textarea>
+        <input id="cname" type="text" maxlength="20" placeholder="你的昵称（选填，留空则显示为「匿名」）" autocomplete="off" />
+        <textarea id="ctext" rows="3" placeholder="写下你的评论…" required></textarea>
         <button type="submit">发表评论</button>
       </form>
       <p style="margin-bottom:30px;"><a href="videos.html" style="color:var(--brand);">← 返回视频专区</a></p>
@@ -40,6 +41,7 @@
   </footer>
 
   <script src="js/store.js"></script>
+  <script src="js/videos.js"></script>
   <script src="js/gate.js"></script>
   <script>
     (async function () {
@@ -64,17 +66,17 @@
       }
       render();
 
+      var nameEl = document.getElementById("cname");
+      if (nameEl && Store.getName()) nameEl.value = Store.getName();
+
       document.getElementById("cform").addEventListener("submit", async function (e) {
         e.preventDefault();
         var ta = document.getElementById("ctext");
         var t = ta.value.trim();
         if (!t) return;
-        if (!Store.hasName()) {
-          alert("请先回到首页输入密码并登录名字，再来评论～");
-          location.href = "index.html";
-          return;
-        }
-        await Store.addComment(vid, t);
+        var nm = nameEl ? nameEl.value.trim() : "";
+        if (nm) Store.setName(nm);
+        await Store.addComment(vid, t, nm);
         ta.value = "";
         render();
       });
