@@ -446,14 +446,25 @@ section.player-card {
   margin: 0 auto 28px;
   padding: 0;
 }
-section.player-card video {
+/* 播放页视频：用 padding-top 16:9 包裹，兼容不支持 aspect-ratio 的旧版移动端浏览器
+   （旧浏览器不支持 aspect-ratio 时视频高度会塌缩为 0，表现为“手机上视频完全无法加载”） */
+.video-wrap {
+  position: relative;
   width: 100%;
-  aspect-ratio: 16/9;
+  padding-top: 56.25%;   /* 16:9 */
+  background: #000;
+  overflow: hidden;
+}
+.video-wrap video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   display: block;
   background: #000;
 }
-section.player-card video:fullscreen {
+.video-wrap video:fullscreen {
   object-fit: contain;
   background: #000;
 }
