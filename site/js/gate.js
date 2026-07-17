@@ -2,17 +2,16 @@
 // 初2028届2班 · 新闻电台 — 访问门
 // 第0步：阅读并同意《使用规则》（必须勾选才能继续）
 // 第1步：输入访问密码（仅本班同学/家长/老师）
-// 第2步：登录名字（同设备下次自动跳过，并记录到访）
-// 修改 PASSWORD 更换访问密码；名字存于本设备，不清缓存就不会再问。
+// 访问记录只采集访客 IP 与到访时间，不记录姓名。
+// 修改 PASSWORD 更换访问密码。
 // ============================================================
 (function () {
   const PASSWORD = "20280102";
   const PW_KEY = "class2news_unlocked";   // 本次会话已通过密码
-  const NAME_KEY = "class2news_name";
   const AGREE_KEY = "class2news_agreed";  // 本次会话已同意规则
 
-  // 已经在本会话解锁且已有名字 → 直接放行
-  if (sessionStorage.getItem(PW_KEY) === "1" && localStorage.getItem(NAME_KEY)) return;
+  // 本次会话已经解锁 → 直接放行（不再依赖名字）
+  if (sessionStorage.getItem(PW_KEY) === "1") return;
 
   // 《使用规则》全文（醒目置顶，必须勾选同意）
   const RULES_HTML =
@@ -31,33 +30,6 @@
     document.body.style.overflow = "";
     const g = document.getElementById("gate");
     if (g) g.remove();
-  }
-
-  function showNameStep() {
-    const gate = document.getElementById("gate");
-    if (!gate) return;
-    gate.innerHTML =
-      '<div class="box">' +
-        '<div class="lock">🙋</div>' +
-        '<h2>登录你的名字</h2>' +
-        '<p>请输入你的真实姓名（同设备下次自动登录）</p>' +
-        '<input id="nm" type="text" placeholder="例如：陈荟颖" autocomplete="off" maxlength="20" />' +
-        '<button id="saveName">进入电台</button>' +
-        '<div class="err" id="err"></div>' +
-      '</div>';
-    const input = gate.querySelector("#nm");
-    const btn = gate.querySelector("#saveName");
-    const err = gate.querySelector("#err");
-    input.focus();
-    function save() {
-      const name = input.value.trim();
-      if (!name) { err.textContent = "请填写名字后再进入。"; return; }
-      localStorage.setItem(NAME_KEY, name);
-      Store.recordVisit(name);
-      unlock();
-    }
-    btn.addEventListener("click", save);
-    input.addEventListener("keydown", function (e) { if (e.key === "Enter") save(); });
   }
 
   function showPwStep() {
@@ -79,13 +51,9 @@
 
     function tryEnter() {
       if (input.value.trim() === PASSWORD) {
-        sessionStorage.setItem(PW_KEY, "1");
-        if (localStorage.getItem(NAME_KEY)) {
-          Store.recordVisit(localStorage.getItem(NAME_KEY));
-          unlock();
-        } else {
-          showNameStep();
-        }
+        // 密码正确 → 记录一次访问（IP + 时间，不记姓名），然后放行
+        if (window.Store && Store.recordVisit) Store.recordVisit();
+        unlock();
       } else {
         err.textContent = "密码不正确，请向班主任或管理员索取。";
         input.value = ""; input.focus();

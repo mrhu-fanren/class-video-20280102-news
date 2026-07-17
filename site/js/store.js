@@ -39,6 +39,31 @@ window.Store = (function () {
     return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
            " " + p(d.getHours()) + ":" + p(d.getMinutes());
   }
+  // 按中国时区(UTC+8)取日期 YYYY-MM-DD，用于"每日"统计
+  function dayKey(ts) {
+    return new Date(ts + 8 * 3600 * 1000).toISOString().slice(0, 10);
+  }
+  // 由到访记录(含 {ip,time}) 计算四项访问指标
+  function computeVisitStats(visits, guestbook, commentCount) {
+    const today = dayKey(Date.now());
+    const ipSet = {}, dayIpSet = {};
+    let dailyVisits = 0;
+    visits.forEach(function (v) {
+      const ip = v.ip || "未知";
+      ipSet[ip] = 1;
+      if (dayKey(v.time) === today) { dailyVisits++; dayIpSet[ip] = 1; }
+    });
+    return {
+      visits: visits,
+      guestbook: guestbook,
+      commentCount: commentCount,
+      totalVisits: visits.length,        // 总访问次数
+      dailyVisits: dailyVisits,          // 每日访问总次数
+      dailyPeople: Object.keys(dayIpSet).length, // 每日访问总人数
+      totalPeople: Object.keys(ipSet).length,     // 访问总人数
+      guestbookCount: (guestbook || []).length
+    };
+  }
 
   return {
     // ---- 当前用户名字（始终存本设备）----
@@ -46,12 +71,12 @@ window.Store = (function () {
     setName: function (n) { localStorage.setItem(K.name, n); },
     hasName: function () { return !!localStorage.getItem(K.name); },
 
-    // ---- 到访记录 ----
-    recordVisit: async function (name) {
-      const r = await tryApi("/api/visits", { method: "POST", body: JSON.stringify({ name }) });
+    // ---- 到访记录（只记 IP + 时间，不记姓名）----
+    recordVisit: async function () {
+      const r = await tryApi("/api/visits", { method: "POST", body: JSON.stringify({}) });
       if (r === undefined) {
         const v = readLocal(K.visits, []);
-        v.push({ name: name, time: Date.now() });
+        v.push({ ip: "本地预览", time: Date.now() });
         writeLocal(K.visits, v);
       }
     },
@@ -110,11 +135,7 @@ window.Store = (function () {
         const gb = readLocal(K.guestbook, []);
         const all = readLocal(K.comments, {});
         let cc = 0; for (const k in all) cc += all[k].length;
-        const m = {}; visits.forEach(function (v) { m[v.name] = (m[v.name] || 0) + 1; });
-        return {
-          visits: visits, guestbook: gb, commentCount: cc,
-          totalVisits: visits.length, memberCount: Object.keys(m).length, guestbookCount: gb.length
-        };
+        return computeVisitStats(visits, gb, cc);
       }
     },
 
