@@ -62,7 +62,7 @@ body::before {
     radial-gradient(ellipse 70% 55% at 50% 80%, var(--ir-3) 0%, transparent 68%),
     radial-gradient(ellipse 55% 45% at 75% 70%, var(--ir-4) 0%, transparent 60%),
     radial-gradient(ellipse 65% 50% at 15% 75%, var(--ir-5) 0%, transparent 64%);
-  animation: prismShift 18s ease-in-out infinite alternate;
+  animation: prismShift 8s ease-in-out infinite alternate;
 }
 
 @keyframes prismShift {
@@ -70,9 +70,9 @@ body::before {
     filter: hue-rotate(0deg) saturate(1) brightness(1);
     transform: scale(1) translate(0, 0);
   }
-  25% { filter: hue-rotate(30deg) saturate(1.1) brightness(1.02); transform: scale(1.01) translate(0.3%, -0.2%); }
-  50% { filter: hue-rotate(-15deg) saturate(0.95) brightness(0.98); transform: scale(0.995) translate(-0.2%, 0.3%); }
-  75% { filter: hue-rotate(45deg) saturate(1.08) brightness(1.01); transform: scale(1.008) translate(0.2%, 0.1%); }
+  25% { filter: hue-rotate(70deg) saturate(1.15) brightness(1.02); transform: scale(1.01) translate(0.3%, -0.2%); }
+  50% { filter: hue-rotate(-35deg) saturate(0.95) brightness(0.98); transform: scale(0.995) translate(-0.2%, 0.3%); }
+  75% { filter: hue-rotate(95deg) saturate(1.12) brightness(1.01); transform: scale(1.008) translate(0.2%, 0.1%); }
   100% { filter: hue-rotate(0deg) saturate(1) brightness(1); transform: scale(1) translate(0, 0); }
 }
 
@@ -101,7 +101,7 @@ body::after {
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
-  animation: crackShimmer 8s ease-in-out infinite alternate;
+  animation: crackShimmer 4s ease-in-out infinite alternate;
 }
 
 @keyframes crackShimmer {
@@ -236,7 +236,7 @@ nav.topbar {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   background-size: 300% 300%;
-  animation: titleShimmer 12s ease-in-out infinite;
+  animation: titleShimmer 6s ease-in-out infinite;
 }
 @keyframes titleShimmer {
   0%, 100% { background-position: 0% 50%; }
