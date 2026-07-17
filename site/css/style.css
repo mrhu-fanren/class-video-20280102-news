@@ -772,21 +772,16 @@ section.player-card { margin: 0 auto 14px; }
   position: relative;
   z-index: 2;
 }
-#gate .rules-warn {
-  background: linear-gradient(180deg, #fff1f0, #ffe0db);
-  border: 1px solid #ffccc7;
-  border-left: 4px solid #f5222d;
-  border-radius: 10px;
-  padding: 11px 14px;
-  margin-bottom: 14px;
-  font-size: 13px;
-  line-height: 1.65;
-  color: #a8071a;
+#gate .rules-note {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: .5px;
+  margin-bottom: 12px;
   position: relative;
   z-index: 2;
-  text-align: justify;
 }
-#gate .rules-warn b { color: #cf1322; }
 #gate .rule { margin-bottom: 12px; }
 #gate .rule:last-child { margin-bottom: 0; }
 #gate .rule b {
