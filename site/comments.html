@@ -68,7 +68,6 @@
       render();
 
       var nameEl = document.getElementById("cname");
-      if (nameEl && Store.getName()) nameEl.value = Store.getName();
 
       document.getElementById("cform").addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -76,7 +75,6 @@
         var t = ta.value.trim();
         if (!t) return;
         var nm = nameEl ? nameEl.value.trim() : "";
-        if (nm) Store.setName(nm);
         await Store.addComment(vid, t, nm);
         ta.value = "";
         render();

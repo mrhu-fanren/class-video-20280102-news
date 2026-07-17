@@ -103,17 +103,11 @@
         var t = ta.value.trim();
         if (!t) return;
         var nm = nameEl ? nameEl.value.trim() : "";
-        if (nm) Store.setName(nm);           // 记住本设备昵称，方便下次自动带出
         await Store.addComment(vid, t, nm);
         ta.value = "";
+        if (nameEl) nameEl.value = "";
         renderComments();
       });
-
-      // 自动带出本设备上次填过的昵称
-      (function () {
-        var nameEl = document.getElementById("cmtName");
-        if (nameEl && Store.getName()) nameEl.value = Store.getName();
-      })();
     })();
   </script>
 </body>

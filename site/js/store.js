@@ -5,8 +5,10 @@
 // 切换后端无需改动任何页面代码。
 // ============================================================
 window.Store = (function () {
+  // 清理旧版遗留的「记住昵称」数据（曾默认带出姓名，现统一匿名）
+  try { localStorage.removeItem("class2news_name"); } catch (e) {}
+
   const K = {
-    name: "class2news_name",
     visits: "class2news_visits",
     comments: "class2news_comments",
     guestbook: "class2news_guestbook"
@@ -70,11 +72,6 @@ window.Store = (function () {
   }
 
   return {
-    // ---- 当前用户名字（始终存本设备）----
-    getName: function () { return localStorage.getItem(K.name) || ""; },
-    setName: function (n) { localStorage.setItem(K.name, n); },
-    hasName: function () { return !!localStorage.getItem(K.name); },
-
     // ---- 密码校验（后端优先，避免密码暴露于前端）----
     // 返回 true=通过 / false=不通过。同时由服务端记录 IP+时间+状态。
     // 无后端（本地预览）时回退到前端 localPw 校验，并在本地记录状态。

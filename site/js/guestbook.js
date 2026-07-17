@@ -29,7 +29,6 @@
       '</div>';
 
     const nameEl = el.querySelector("#gb-name");
-    if (nameEl && Store.getName()) nameEl.value = Store.getName();
 
     el.querySelector("#gb-form").addEventListener("submit", async function (e) {
       e.preventDefault();
@@ -37,7 +36,6 @@
       const t = ta.value.trim();
       if (!t) return;
       const nm = nameEl ? nameEl.value.trim() : "";
-      if (nm) Store.setName(nm);
       await Store.addGuestbook(t, nm);
       render();
     });
