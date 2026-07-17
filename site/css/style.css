@@ -802,6 +802,7 @@ section.player-card { margin: 0 auto 14px; }
 #gate .box-rules h2,
 #gate .box-rules > p { text-align: center; }
 #gate .box-rules button { display: block; margin: 0 auto; }
+#gate .box-rules button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
 .err {
   color: #dc2626;
   font-size: 13px;
