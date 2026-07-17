@@ -25,6 +25,9 @@
       <div class="src-banner" id="srcBanner">正在检测数据来源…</div>
 
       <div class="stat-grid" id="stats"></div>
+
+      <h4 style="margin:22px 0 10px;font-size:17px;">问题反馈记录</h4>
+      <div class="gb-list" id="gbList"></div>
     </section>
   </main>
 
@@ -52,7 +55,20 @@
           stat(stats.totalPeople != null ? stats.totalPeople : 0, "访问总人数") +
           stat(stats.failedAttempts != null ? stats.failedAttempts : 0, "密码错误次数") +
           stat(cmt, "视频评论数") +
-          stat(stats.guestbookCount != null ? stats.guestbookCount : gb.length, "留言板条数");
+          stat(stats.guestbookCount != null ? stats.guestbookCount : gb.length, "问题反馈条数");
+
+        // 问题反馈记录（最新在前，最多展示 100 条）
+        var list = gb.slice(0, 100);
+        var box = document.getElementById("gbList");
+        box.innerHTML = list.length
+          ? list.map(function (c) {
+              return '<div class="gb-item">' +
+                '<div class="gb-meta"><b>' + Store.esc(c.name || "匿名") + '</b>' +
+                '<span>' + Store.fmt(c.time) + '</span></div>' +
+                '<div class="gb-text">' + Store.esc(c.text) + '</div>' +
+              '</div>';
+            }).join("")
+          : '<p class="gb-empty">还没有问题反馈。同学在网站底部留言框提交后，会显示在这里。</p>';
       }
 
       var gate = document.createElement("div");
