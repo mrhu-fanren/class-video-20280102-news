@@ -64,9 +64,17 @@
         return;
       }
       document.title = v.title + " · 初2028届2班新闻电台";
+
+      // 探测是否存在后端：有则用防盗链代理地址（禁止外站直链下载），无（本地预览）则用直链
+      var videoSrc = v.file;
+      try {
+        var hr = await fetch("/api/health");
+        if (hr.ok) videoSrc = "/api/video?file=" + encodeURIComponent(v.file);
+      } catch (e) {}
+
       stage.innerHTML =
-        '<div class="video-wrap"><video controls playsinline webkit-playsinline preload="metadata">' +
-          '<source src="' + v.file + '" type="video/mp4" />' +
+        '<div class="video-wrap"><video controls playsinline webkit-playsinline preload="metadata" controlsList="nodownload" oncontextmenu="return false;" ondragstart="return false;">' +
+          '<source src="' + videoSrc + '" type="video/mp4" />' +
           '您的浏览器不支持视频播放。' +
         '</video></div>' +
         '<div class="player-meta">' +

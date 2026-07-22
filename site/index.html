@@ -33,6 +33,9 @@
     <section class="section" id="videos">
       <h3>视频专区</h3>
       <div class="hint">班级新闻播报，每排 5 个，点击即可观看每一期。</div>
+      <div class="search-wrap">
+        <input type="search" id="search" class="search-input" placeholder="🔍 搜索视频（标题 / 主播 / 简介）" autocomplete="off" />
+      </div>
       <div class="vlist" id="list"><!-- 由 videos.js 渲染 --></div>
     </section>
 
@@ -62,25 +65,40 @@
   <script>
     (async function () {
       var list = document.getElementById("list");
+      var search = document.getElementById("search");
       var videos = window.VIDEOS || [];
       if (!videos.length) { list.innerHTML = '<p>暂无视频，敬请期待～</p>'; return; }
       var counts = await Store.getAllCommentCounts();
-      list.innerHTML = videos.map(function (v, i) {
-        var no = String(videos.length - i).padStart(2, "0");
-        return '<a class="vcard" href="play.html?id=' + v.id + '">' +
-          '<div class="cover">' +
-            '<span class="no">' + no + '</span>' +
-            '<span class="play-ic">▶</span>' +
-          '</div>' +
-          '<div class="vbody">' +
-            '<div class="vtitle">' + v.title + '</div>' +
-            '<div class="vmeta">' +
-              '<span>' + v.date + '</span>' +
-              '<span class="vcomments">💬 ' + (counts[v.id] || 0) + '</span>' +
+      function renderList(q) {
+        q = (q || "").trim().toLowerCase();
+        var arr = videos.filter(function (v) {
+          if (!q) return true;
+          var hay = (v.title + " " + (v.hosts || []).join(" ") + " " + v.desc).toLowerCase();
+          return hay.indexOf(q) !== -1;
+        });
+        if (!arr.length) {
+          list.innerHTML = '<p class="gb-empty">没有找到匹配「' + Store.esc(q) + '」的视频。</p>';
+          return;
+        }
+        list.innerHTML = arr.map(function (v) {
+          var no = String(videos.length - videos.indexOf(v)).padStart(2, "0");
+          return '<a class="vcard" href="play.html?id=' + v.id + '">' +
+            '<div class="cover">' +
+              '<span class="no">' + no + '</span>' +
+              '<span class="play-ic">▶</span>' +
             '</div>' +
-          '</div>' +
-        '</a>';
-      }).join('');
+            '<div class="vbody">' +
+              '<div class="vtitle">' + v.title + '</div>' +
+              '<div class="vmeta">' +
+                '<span>' + v.date + '</span>' +
+                '<span class="vcomments">💬 ' + (counts[v.id] || 0) + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</a>';
+        }).join('');
+      }
+      renderList("");
+      if (search) search.addEventListener("input", function () { renderList(search.value); });
     })();
   </script>
 </body>
