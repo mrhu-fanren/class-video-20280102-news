@@ -469,6 +469,71 @@ section.player-card {
   background: #000;
 }
 
+/* ---- 真实加载进度条（覆盖在视频上，按需加载触发） ---- */
+.video-wrap .ld-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,.32), rgba(0,0,0,.64));
+  cursor: pointer;
+  transition: opacity .4s ease;
+}
+.video-wrap .ld-overlay.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+.video-wrap .ld-play {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(14,165,233,.92);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  padding-left: 6px;
+  cursor: pointer;
+  box-shadow: 0 8px 26px rgba(0,0,0,.4);
+  transition: transform .2s, background .2s;
+}
+.video-wrap .ld-play:hover { transform: scale(1.08); background: var(--brand-deep); }
+.video-wrap .ld-panel {
+  width: min(74%, 360px);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  align-items: center;
+}
+.video-wrap .ld-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.22);
+  overflow: hidden;
+}
+.video-wrap .ld-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand), #8b5cf6 60%, var(--accent-coral));
+  background-size: 200% 100%;
+  transition: width .25s ease;
+  animation: ldFlow 1.4s linear infinite;
+}
+@keyframes ldFlow { 0% { background-position: 0% 0; } 100% { background-position: 200% 0; } }
+.video-wrap .ld-label {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  text-shadow: 0 1px 4px rgba(0,0,0,.5);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---- Homepage latest — small thumbnail, click to fullscreen ---- */
 .latest-wrap {
   max-width: 300px;
@@ -1218,6 +1283,8 @@ table.data-table td {
   #gate .box::before { display: none; }   /* 关闭旋转光环动画，降低低端机 GPU 负担 */
   #gate .rules { max-height: 34vh; }
   #gate h2 { font-size: 21px; }
+  .video-wrap .ld-play { width: 58px; height: 58px; font-size: 22px; padding-left: 5px; }
+  .video-wrap .ld-panel { width: 86%; }
 }
 
 /* ================================================================

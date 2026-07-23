@@ -65,18 +65,24 @@
       }
       document.title = v.title + " · 初2028届2班新闻电台";
 
-      // 探测是否存在后端：有则用防盗链代理地址（禁止外站直链下载），无（本地预览）则用直链
+      // 播放源：Cloudflare 静态边缘缓存直链（移动端极快、原生 Range 流式播放）
+      // 弃用原先的 Pages 函数代理（其 Cache-Control:private 导致边缘不缓存、每次回源，是手机加载慢约1分钟的主因）
       var videoSrc = v.file;
-      try {
-        var hr = await fetch("/api/health");
-        if (hr.ok) videoSrc = "/api/video?file=" + encodeURIComponent(v.file);
-      } catch (e) {}
 
       stage.innerHTML =
-        '<div class="video-wrap"><video controls playsinline webkit-playsinline preload="metadata" controlsList="nodownload" oncontextmenu="return false;" ondragstart="return false;">' +
-          '<source src="' + videoSrc + '" type="video/mp4" />' +
-          '您的浏览器不支持视频播放。' +
-        '</video></div>' +
+        '<div class="video-wrap">' +
+          '<video id="pv" controls playsinline webkit-playsinline preload="metadata" controlsList="nodownload" oncontextmenu="return false;" ondragstart="return false;">' +
+            '<source src="' + videoSrc + '" type="video/mp4" />' +
+            '您的浏览器不支持视频播放。' +
+          '</video>' +
+          '<div class="ld-overlay" id="ldOverlay">' +
+            '<button class="ld-play" id="ldPlay" type="button" aria-label="播放视频">&#9654;</button>' +
+            '<div class="ld-panel" id="ldPanel">' +
+              '<div class="ld-bar"><div class="ld-fill" id="ldFill"></div></div>' +
+              '<div class="ld-label" id="ldLabel">准备中…</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
         '<div class="player-meta">' +
           '<h2>' + v.title + '</h2>' +
           '<div class="sub">发布日期：' + v.date + '</div>' +
@@ -87,6 +93,65 @@
             ? '<p class="intro-full">' + v.desc + '</p>'
             : '<details class="intro"><summary>详细介绍</summary><div class="intro-body">' + v.desc + '</div></details>') +
         '</div>';
+
+      /* ===== 真实加载进度条（基于浏览器实际已缓冲字节，非模拟） + 移动端按需加载 ===== */
+      (function () {
+        var pv = document.getElementById('pv');
+        var overlay = document.getElementById('ldOverlay');
+        var fill = document.getElementById('ldFill');
+        var label = document.getElementById('ldLabel');
+        var playBtn = document.getElementById('ldPlay');
+        var total = 0;            // 视频总字节（同域 HEAD 探测，仅 1 次无正文请求）
+        var started = false;
+
+        // 1) 真实总大小：同域 HEAD 请求读取 Content-Length（极小开销，不下载正文）
+        fetch(videoSrc, { method: 'HEAD' }).then(function (r) {
+          var len = r.headers.get('content-length');
+          if (len) total = parseInt(len, 10) || 0;
+        }).catch(function () {});
+
+        function fmt(b) {
+          if (!b) return '';
+          var m = b / 1048576;
+          return m >= 1 ? m.toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+        }
+        // 真实进度 = 浏览器已缓冲区间末端 / 总时长（即实际已从网络载入的数据比例）
+        function paint() {
+          try {
+            var d = pv.duration || 0, b = pv.buffered;
+            if (b && b.length && d) {
+              var end = b.end(b.length - 1);
+              var pct = Math.min(100, (end / d) * 100);
+              fill.style.width = pct.toFixed(1) + '%';
+              var t = '加载中 ' + pct.toFixed(0) + '%';
+              if (total) t += '  ·  ' + fmt(pct / 100 * total) + ' / ' + fmt(total);
+              label.textContent = t;
+              return pct;
+            }
+          } catch (e) {}
+          label.textContent = '准备中…';
+          return 0;
+        }
+        function begin() {
+          if (started) return;
+          started = true;
+          pv.preload = 'auto';              // 按需加载：用户点击后才开始拉流
+          var p = pv.play();
+          if (p && p.catch) p.catch(function () {});
+        }
+        playBtn.addEventListener('click', function (e) { e.stopPropagation(); begin(); });
+        overlay.addEventListener('click', function () { begin(); });
+        pv.addEventListener('progress', paint);       // 下载过程中持续触发 = 真实进度
+        pv.addEventListener('loadedmetadata', paint);
+        pv.addEventListener('timeupdate', paint);       // 播放时同步缓冲进度
+        pv.addEventListener('waiting', function () { overlay.classList.remove('hide'); paint(); });
+        pv.addEventListener('stalled', function () { overlay.classList.remove('hide'); });
+        pv.addEventListener('playing', function () {
+          var p = paint();
+          if (!pv.paused) setTimeout(function () { if (!pv.paused) overlay.classList.add('hide'); }, 500);
+        });
+      })();
+
       var vid = v.id;
 
       async function renderComments() {
