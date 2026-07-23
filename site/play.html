@@ -65,9 +65,12 @@
       }
       document.title = v.title + " · 初2028届2班新闻电台";
 
-      // 播放源：Cloudflare 静态边缘缓存直链（移动端极快、原生 Range 流式播放）
-      // 弃用原先的 Pages 函数代理（其 Cache-Control:private 导致边缘不缓存、每次回源，是手机加载慢约1分钟的主因）
+      // 播放源：走防盗链代理（禁止直接下载/外链）+ 公共缓存（回源一次后边缘节点秒开）
       var videoSrc = v.file;
+      try {
+        var hr = await fetch("/api/health");
+        if (hr.ok) videoSrc = "/api/video?file=" + encodeURIComponent(v.file);
+      } catch (e) {}
 
       stage.innerHTML =
         '<div class="video-wrap">' +

@@ -17,17 +17,13 @@ export async function onRequest({ request, env }) {
     return new Response("Forbidden", { status: 403 });
   }
 
-  // 透传 Range 头，支持视频拖动播放
-  const init = {};
-  const range = request.headers.get("range");
-  if (range) init.headers = { Range: range };
-
-  const asset = await env.ASSETS.fetch(new URL("/" + file, url), init);
+  // 取完整文件而不透传 Range，使 Cloudflare 边缘可缓存完整 200 响应
+  const asset = await env.ASSETS.fetch(new URL("/" + file, url));
   if (!asset.ok) return new Response("Not Found", { status: 404 });
 
   const headers = new Headers(asset.headers);
   headers.set("Content-Disposition", "inline");
-  headers.set("Cache-Control", "private, max-age=600");
+  headers.set("Cache-Control", "public, max-age=86400, s-maxage=86400");
   headers.set("X-Content-Type-Options", "nosniff");
   return new Response(asset.body, { status: asset.status, headers });
 }
