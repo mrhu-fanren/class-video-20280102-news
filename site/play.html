@@ -79,10 +79,13 @@
             '您的浏览器不支持视频播放。' +
           '</video>' +
           '<div class="ld-overlay" id="ldOverlay">' +
-            '<button class="ld-play" id="ldPlay" type="button" aria-label="播放视频">&#9654;</button>' +
-            '<div class="ld-panel" id="ldPanel">' +
-              '<div class="ld-bar"><div class="ld-fill" id="ldFill"></div></div>' +
-              '<div class="ld-label" id="ldLabel">准备中…</div>' +
+            '<div class="ld-circle-wrap">' +
+              '<svg viewBox="0 0 120 120" class="ld-circle">' +
+                '<defs><linearGradient id="ldGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>' +
+                '<circle class="ld-bg" cx="60" cy="60" r="52"/>' +
+                '<circle class="ld-fg" id="ldFg" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73" stroke="url(#ldGrad)"/>' +
+              '</svg>' +
+              '<div class="ld-center" id="ldCenter">&#9654;<br><span class="ld-sub">点击播放</span></div>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -97,43 +100,54 @@
             : '<details class="intro"><summary>详细介绍</summary><div class="intro-body">' + v.desc + '</div></details>') +
         '</div>';
 
-      /* ===== 真实加载进度条（基于浏览器实际已缓冲字节，非模拟） + 移动端按需加载 ===== */
+      /* ===== 真实加载进度圈（基于实际缓冲字节，平滑 rAF 更新）+ 按需加载 ===== */
       (function () {
         var pv = document.getElementById('pv');
         var overlay = document.getElementById('ldOverlay');
-        var fill = document.getElementById('ldFill');
-        var label = document.getElementById('ldLabel');
-        var playBtn = document.getElementById('ldPlay');
-        var total = 0;            // 视频总字节（同域 HEAD 探测，仅 1 次无正文请求）
+        var fg = document.getElementById('ldFg');
+        var center = document.getElementById('ldCenter');
+        var circ = 2 * Math.PI * 52;          // 进度圈周长 ≈ 326.73
+        var total = 0;                        // 视频总字节（同域 HEAD 探测）
         var started = false;
+        var rafId = null;
 
-        // 1) 真实总大小：同域 HEAD 请求读取 Content-Length（极小开销，不下载正文）
+        // 1) 真实总大小：同域 HEAD 读取 Content-Length（极小开销，不下载正文）
         fetch(videoSrc, { method: 'HEAD' }).then(function (r) {
           var len = r.headers.get('content-length');
           if (len) total = parseInt(len, 10) || 0;
         }).catch(function () {});
 
-        function fmt(b) {
-          if (!b) return '';
-          var m = b / 1048576;
-          return m >= 1 ? m.toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
-        }
-        // 真实进度 = 浏览器已缓冲区间末端 / 总时长（即实际已从网络载入的数据比例）
+        // 真实进度 = 浏览器已缓冲区间末端 / 总时长
         function paint() {
           try {
             var d = pv.duration || 0, b = pv.buffered;
-            if (b && b.length && d) {
+            if (b && b.length && d && d > 0) {
               var end = b.end(b.length - 1);
-              var pct = Math.min(100, (end / d) * 100);
-              fill.style.width = pct.toFixed(1) + '%';
-              var t = '加载中 ' + pct.toFixed(0) + '%';
-              if (total) t += '  ·  ' + fmt(pct / 100 * total) + ' / ' + fmt(total);
-              label.textContent = t;
+              var pct = Math.min(100, Math.max(0, (end / d) * 100));
+              if (fg) fg.style.strokeDashoffset = circ * (1 - pct / 100);
+              if (center) {
+                center.innerHTML = pct >= 100 ? '加载完成' : Math.round(pct) + '%';
+              }
               return pct;
             }
           } catch (e) {}
-          label.textContent = '准备中…';
+          if (center && !started) {
+            center.innerHTML = '&#9654;<br><span class="ld-sub">点击播放</span>';
+          }
           return 0;
+        }
+        // 2) requestAnimationFrame 循环：overlay 可见时高频更新进度圈
+        function startRaf() {
+          if (rafId) return;
+          function tick() {
+            paint();
+            if (!overlay.classList.contains('hide')) {
+              rafId = requestAnimationFrame(tick);
+            } else {
+              rafId = null;
+            }
+          }
+          rafId = requestAnimationFrame(tick);
         }
         function begin() {
           if (started) return;
@@ -141,18 +155,20 @@
           pv.preload = 'auto';              // 按需加载：用户点击后才开始拉流
           var p = pv.play();
           if (p && p.catch) p.catch(function () {});
+          startRaf();
         }
-        playBtn.addEventListener('click', function (e) { e.stopPropagation(); begin(); });
         overlay.addEventListener('click', function () { begin(); });
-        pv.addEventListener('progress', paint);       // 下载过程中持续触发 = 真实进度
+        pv.addEventListener('progress', paint);
         pv.addEventListener('loadedmetadata', paint);
-        pv.addEventListener('timeupdate', paint);       // 播放时同步缓冲进度
-        pv.addEventListener('waiting', function () { overlay.classList.remove('hide'); paint(); });
+        pv.addEventListener('timeupdate', paint);
+        pv.addEventListener('waiting', function () { overlay.classList.remove('hide'); startRaf(); });
         pv.addEventListener('stalled', function () { overlay.classList.remove('hide'); });
         pv.addEventListener('playing', function () {
-          var p = paint();
+          paint();
           if (!pv.paused) setTimeout(function () { if (!pv.paused) overlay.classList.add('hide'); }, 500);
         });
+        // 初始启动循环（显示"▶ 点击播放"状态）
+        startRaf();
       })();
 
       var vid = v.id;
