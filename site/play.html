@@ -74,7 +74,7 @@
 
       stage.innerHTML =
         '<div class="video-wrap">' +
-          '<video id="pv" controls playsinline webkit-playsinline preload="auto" controlsList="nodownload" oncontextmenu="return false;" ondragstart="return false;">' +
+          '<video id="pv" controls playsinline webkit-playsinline preload="none" controlsList="nodownload" oncontextmenu="return false;" ondragstart="return false;">' +
             '<source src="' + videoSrc + '" type="video/mp4" />' +
             '您的浏览器不支持视频播放。' +
           '</video>' +
@@ -152,7 +152,7 @@
         function begin() {
           if (started) return;
           started = true;
-          pv.preload = 'auto';              // 按需加载：用户点击后才开始拉流
+          pv.preload = 'auto';              // 点击后才开始拉流
           var p = pv.play();
           if (p && p.catch) p.catch(function () {});
           startRaf();
