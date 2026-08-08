@@ -152,7 +152,8 @@
         function begin() {
           if (started) return;
           started = true;
-          pv.preload = 'auto';              // 点击后才开始拉流
+          pv.preload = 'auto';
+          pv.load();                        // 强制重新连接视频源
           var p = pv.play();
           if (p && p.catch) p.catch(function () {});
           startRaf();
