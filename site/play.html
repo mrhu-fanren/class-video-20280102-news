@@ -65,7 +65,7 @@
       }
       document.title = v.title + " · 初2028届2班新闻电台";
 
-      // 播放源：走防盗链代理（禁止直接下载/外链）+ 公共缓存（回源一次后边缘节点秒开）
+      // 播放源：走防盗链代理（禁止外站直链），前端用 preload="metadata" 提前加载元数据
       var videoSrc = v.file;
       try {
         var hr = await fetch("/api/health");
@@ -74,7 +74,7 @@
 
       stage.innerHTML =
         '<div class="video-wrap">' +
-          '<video id="pv" controls playsinline webkit-playsinline preload="none" controlsList="nodownload" oncontextmenu="return false;" ondragstart="return false;">' +
+          '<video id="pv" controls playsinline webkit-playsinline preload="metadata" controlsList="nodownload" oncontextmenu="return false;" ondragstart="return false;">' +
             '<source src="' + videoSrc + '" type="video/mp4" />' +
             '您的浏览器不支持视频播放。' +
           '</video>' +
@@ -152,8 +152,6 @@
         function begin() {
           if (started) return;
           started = true;
-          pv.preload = 'auto';
-          pv.load();                        // 强制重新连接视频源
           var p = pv.play();
           if (p && p.catch) p.catch(function () {});
           startRaf();
