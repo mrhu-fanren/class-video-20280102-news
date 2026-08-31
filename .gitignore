@@ -3,3 +3,7 @@
 node_modules/
 .DS_Store
 *.log
+
+# 本地语音识别环境（体积很大，不入库）
+.asr-venv/
+ffmpeg2pass-0.log.mbtree
