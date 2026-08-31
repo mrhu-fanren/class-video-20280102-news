@@ -9,7 +9,7 @@
   async function render() {
     const list = await Store.getGuestbook();
     el.innerHTML =
-      '<div class="gb-head"><h3>💬 班级留言板</h3>' +
+      '<div class="gb-head"><h3>班级留言板</h3>' +
       '<p class="hint">写下你想对班级说的话，大家一起看～</p></div>' +
       '<form id="gb-form" class="gb-form">' +
         '<input id="gb-name" type="text" maxlength="20" placeholder="你的昵称（选填，留空则显示为「匿名」）" autocomplete="off" />' +

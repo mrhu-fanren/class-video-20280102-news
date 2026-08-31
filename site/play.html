@@ -26,7 +26,7 @@
     <section class="player-card" id="stage"><!-- 由脚本渲染 --></section>
 
     <section class="section comment-section">
-      <h3>💬 评论区 <span class="cmt-count" id="cmtCount">0 条评论</span></h3>
+      <h3>评论区 <span class="cmt-count" id="cmtCount">0 条评论</span></h3>
       <div class="hint">就这期新闻和大家交流一下吧～</div>
       <div id="cmtList" class="gb-list" style="margin:16px 0 24px;"></div>
       <form id="cmtForm" class="gb-form">
@@ -40,7 +40,7 @@
   </main>
 
   <div class="feedback-bar">
-    <a href="#guestbook" onclick="setTimeout(function(){var t=document.getElementById('gb-text');if(t)t.focus();},300)">📮 问题建议反馈</a>
+    <a href="#guestbook" onclick="setTimeout(function(){var t=document.getElementById('gb-text');if(t)t.focus();},300)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> 问题建议反馈</a>
   </div>
 
   <footer class="footer">
@@ -81,11 +81,11 @@
           '<div class="ld-overlay" id="ldOverlay">' +
             '<div class="ld-circle-wrap">' +
               '<svg viewBox="0 0 120 120" class="ld-circle">' +
-                '<defs><linearGradient id="ldGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>' +
+                '<defs><linearGradient id="ldGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#16406b"/><stop offset="100%" stop-color="#c9a24b"/></linearGradient></defs>' +
                 '<circle class="ld-bg" cx="60" cy="60" r="52"/>' +
                 '<circle class="ld-fg" id="ldFg" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73" stroke="url(#ldGrad)"/>' +
               '</svg>' +
-              '<div class="ld-center" id="ldCenter">&#9654;<br><span class="ld-sub">点击播放</span></div>' +
+              '<div class="ld-center" id="ldCenter"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><span class="ld-sub">点击播放</span></div>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -132,7 +132,7 @@
             }
           } catch (e) {}
           if (center && !started) {
-            center.innerHTML = '&#9654;<br><span class="ld-sub">点击播放</span>';
+            center.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><span class="ld-sub">点击播放</span>';
           }
           return 0;
         }
