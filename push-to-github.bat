@@ -98,13 +98,16 @@ if errorlevel 1 (
 )
 
 echo [2/3] Pushing to GitHub (will try mirror if direct fails)...
+REM --- 通道顺序 = 实测可用优先。2026-08-31 实测：ghfast.top / gh-proxy.com 可用 ---
 set "REMOTES[0]=https://github.com/mrhu-fanren/class-video-20280102-news.git"
-set "REMOTES[1]=https://ghproxy.net/https://github.com/mrhu-fanren/class-video-20280102-news.git"
-set "REMOTES[2]=https://mirror.ghproxy.com/https://github.com/mrhu-fanren/class-video-20280102-news.git"
-set "REMOTES[3]=https://gitclone.com/github.com/mrhu-fanren/class-video-20280102-news.git"
+set "REMOTES[1]=https://ghfast.top/https://github.com/mrhu-fanren/class-video-20280102-news.git"
+set "REMOTES[2]=https://gh-proxy.com/https://github.com/mrhu-fanren/class-video-20280102-news.git"
+set "REMOTES[3]=https://ghproxy.net/https://github.com/mrhu-fanren/class-video-20280102-news.git"
+set "REMOTES[4]=https://mirror.ghproxy.com/https://github.com/mrhu-fanren/class-video-20280102-news.git"
+set "REMOTES[5]=https://gitclone.com/github.com/mrhu-fanren/class-video-20280102-news.git"
 
 set "PUSHED=0"
-for /L %%r in (0,1,3) do (
+for /L %%r in (0,1,5) do (
   if !PUSHED!==0 (
     echo ------------------------------------------------------------
     echo Trying: !REMOTES[%%r]!
