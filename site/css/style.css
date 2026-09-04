@@ -31,6 +31,11 @@
   --shadow-lg: 0 12px 30px rgba(20, 30, 45, .10), 0 3px 8px rgba(20, 30, 45, .06);
   --radius: 12px;
   --radius-lg: 16px;
+
+  /* v66 精装令牌：缓动 + 编排载入 */
+  --ease-out-expo: cubic-bezier(.16, 1, .3, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --reveal-dur: .7s;
 }
 
 *, *::before, *::after {
@@ -51,7 +56,7 @@ body {
   position: relative;
 }
 
-/* ---- 静态暖纸纹理：极淡频率刻度（无动画，不耗 GPU） ---- */
+/* ---- 精装纸感：暖纸底 + 印刷网点颗粒 + 极淡频率刻度（全静态，不耗 GPU） ---- */
 body::before {
   content: '';
   position: fixed;
@@ -63,12 +68,23 @@ body::before {
     repeating-linear-gradient(90deg, transparent 0 47px, #1c2431 47px 48px),
     repeating-linear-gradient(0deg, transparent 0 47px, #1c2431 47px 48px);
 }
+/* 印刷网点颗粒（报纸印刷的半调网 feel） */
 body::after {
   content: '';
   position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .5;
+  background-image: radial-gradient(rgba(22, 64, 107, .055) 1px, transparent 1.2px);
+  background-size: 7px 7px;
+}
+/* 顶部信号红三色条（品牌识别） */
+#top-tape {
+  position: fixed;
   top: 0; left: 0; right: 0;
   height: 3px;
-  z-index: 99;
+  z-index: 999;
   background: linear-gradient(90deg, var(--brand) 0%, var(--gold) 45%, var(--signal) 75%, var(--brand) 100%);
   opacity: .85;
   pointer-events: none;
@@ -125,6 +141,26 @@ main.wrap {
   color: var(--ink-soft);
   line-height: 1.9;
   margin-bottom: 12px;
+}
+
+/* ================================================================
+   REVEAL 编排 — 页面载入错峰显现（v66）
+   ================================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity var(--reveal-dur) var(--ease-out-expo),
+              transform var(--reveal-dur) var(--ease-out-expo);
+  will-change: opacity, transform;
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+/* 卡片错峰：用 CSS 变量 --i 生成交错延迟，营造编排队列感 */
+.reveal { transition-delay: calc(var(--i, 0) * 45ms); }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { transition: none; opacity: 1; transform: none; }
 }
 
 /* ================================================================
@@ -332,7 +368,7 @@ nav.topbar {
 }
 .headline:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 18px 40px rgba(20, 30, 45, .14), 0 4px 10px rgba(20, 30, 45, .08);
   border-color: rgba(184, 134, 11, .45);
 }
 .headline .hl-cover {
@@ -353,7 +389,8 @@ nav.topbar {
   inset: 0;
   background: repeating-linear-gradient(115deg, transparent 0 16px, rgba(255,255,255,.03) 16px 17px);
 }
-.headline .hl-no {
+/* 头条景深：数字微放大 + 上浮 */
+.headline .hl-cover .hl-no {
   font-family: var(--font-display);
   font-size: clamp(56px, 12vw, 110px);
   font-weight: 900;
@@ -363,6 +400,11 @@ nav.topbar {
   text-shadow: 0 4px 30px rgba(0,0,0,.4);
   position: relative;
   z-index: 1;
+  transition: transform .45s var(--ease-out-expo), text-shadow .45s;
+}
+.headline:hover .hl-no {
+  transform: translateY(-6px) scale(1.04);
+  text-shadow: 0 8px 40px rgba(0,0,0,.5);
 }
 .headline .hl-tag {
   position: absolute;
@@ -509,6 +551,10 @@ nav.topbar {
   position: relative;
   z-index: 1;
   text-shadow: 0 2px 14px rgba(0,0,0,.35);
+  transition: transform .4s var(--ease-out-expo);
+}
+.vcard:hover .cover .no {
+  transform: translateY(-3px) scale(1.06);
 }
 /* 主播名竖排章（仿图书藏书章，右侧） */
 .vcard .cover .host-seal {
@@ -560,8 +606,10 @@ nav.topbar {
   background: rgba(255, 253, 248, .92);
   color: var(--brand);
   box-shadow: 0 6px 20px rgba(0,0,0,.35);
+  transition: transform .35s var(--ease-spring);
 }
 .vcard:hover .cover .play-ic { opacity: 1; }
+.vcard:hover .cover .play-ic svg { transform: scale(1.12); }
 .vcard .vbody {
   padding: 11px 13px 12px;
 }

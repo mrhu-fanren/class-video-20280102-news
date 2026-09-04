@@ -33,10 +33,10 @@
 
   <main class="wrap">
     <section class="hero">
-      <span class="badge">ON AIR · 每天更新</span>
-      <h1>初2028届2班<br/><span class="hl">新闻电台</span></h1>
-      <p class="lead">这里是属于我们班的新闻频道——同学播报、班级新鲜事、活动风采，一期一会，记录我们的初中时光。</p>
-      <div class="masthead-meta" id="mastMeta"></div>
+      <span class="badge reveal in">ON AIR · 每天更新</span>
+      <h1 class="reveal in">初2028届2班<br/><span class="hl">新闻电台</span></h1>
+      <p class="lead reveal in">这里是属于我们班的新闻频道——同学播报、班级新鲜事、活动风采，一期一会，记录我们的初中时光。</p>
+      <div class="masthead-meta reveal in" id="mastMeta"></div>
     </section>
 
     <section class="section" id="latest" style="padding-top:24px;">
@@ -44,12 +44,12 @@
     </section>
 
     <section class="section" id="videos" style="padding-top:12px;">
-      <h3>全部期数</h3>
-      <div class="hint">班级新闻播报，点击即可观看每一期。</div>
-      <div class="search-wrap">
+      <h3 class="reveal in">全部期数</h3>
+      <div class="hint reveal in">班级新闻播报，点击即可观看每一期。</div>
+      <div class="search-wrap reveal in">
         <input type="search" id="search" class="search-input" placeholder="搜索视频（标题 / 主播 / 简介 / 期号）" autocomplete="off" />
       </div>
-      <div class="vlist" id="list"><!-- 由 videos.js 渲染 --></div>
+      <div class="vlist" id="list" data-reveal="1"><!-- 由 videos.js 渲染 --></div>
     </section>
 
     <section class="section" id="about">
@@ -74,6 +74,7 @@
   <script src="js/store.js"></script>
   <script src="js/videos.js"></script>
   <script src="js/gate.js"></script>
+  <script src="js/reveal.js"></script>
   <script src="js/guestbook.js"></script>
   <script>
     (async function () {
@@ -124,7 +125,7 @@
         list.innerHTML = arr.map(function (v) {
           var no = (v.id.match(/\d+/) || ["0"])[0].padStart(2, "0");
           var host = ((v.hosts || [])[0] || "").replace("主播：", "");
-          return '<a class="vcard" href="play.html?id=' + v.id + '">' +
+          return '<a class="vcard reveal" href="play.html?id=' + v.id + '">' +
             '<div class="cover">' +
               '<span class="no">' + no + '</span>' +
               (host ? '<span class="host-seal">' + host + '</span>' : '') +
@@ -139,6 +140,7 @@
             '</div>' +
           '</a>';
         }).join('');
+        if (window.__revealInit) window.__revealInit(list, { instant: !!q });
       }
       renderList("");
       if (search) search.addEventListener("input", function () { renderList(search.value); });
