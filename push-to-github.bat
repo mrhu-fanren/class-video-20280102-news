@@ -62,6 +62,10 @@ if defined GIT (
   if errorlevel 1 set "GIT="
 )
 
+REM --- Detect current branch (so script works on main AND test) ---
+for /f "delims=" %%b in ('"%GIT%" rev-parse --abbrev-ref HEAD 2^>nul') do set "CUR_BRANCH=%%b"
+if not defined CUR_BRANCH set "CUR_BRANCH=main"
+
 if "%GIT%"=="" (
   echo ============================================================
   echo  Could NOT find git.exe anywhere on this computer.
@@ -112,7 +116,7 @@ for /L %%r in (0,1,5) do (
     echo ------------------------------------------------------------
     echo Trying: !REMOTES[%%r]!
     "%GIT%" remote set-url origin "!REMOTES[%%r]!"
-    "%GIT%" push -u origin main --force
+    "%GIT%" push -u origin %CUR_BRANCH% --force
     if not errorlevel 1 set PUSHED=1
   )
 )
