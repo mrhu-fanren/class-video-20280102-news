@@ -217,7 +217,34 @@ nav.topbar {
    ================================================================ */
 .hero {
   text-align: center;
-  padding: 72px 24px 54px;
+  padding: 72px 24px 40px;
+  position: relative;
+}
+/* 头版刊头装饰线：粗细双线（报刊 masthead 特征） */
+.hero::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 28px; left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, 980px);
+  height: 8px;
+  border-top: 2.5px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  opacity: .55;
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  display: block;
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, 980px);
+  height: 1px;
+  background: var(--ink);
+  opacity: .3;
+  pointer-events: none;
 }
 .badge {
   display: inline-flex;
@@ -266,6 +293,152 @@ nav.topbar {
   line-height: 1.85;
 }
 
+/* ---- 头版刊号行：期数统计 + 日期 ---- */
+.masthead-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 22px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+.masthead-meta::before,
+.masthead-meta::after {
+  content: '';
+  width: 60px;
+  height: 1px;
+  background: var(--ink);
+  opacity: .25;
+}
+
+/* ================================================================
+   FRONT PAGE HEADLINE — 头条大图（首页最新一期）
+   ================================================================ */
+.headline {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  max-width: 1080px;
+  margin: 0 auto 26px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: transform .3s cubic-bezier(.22, 1, .36, 1), box-shadow .3s, border-color .3s;
+}
+.headline:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(184, 134, 11, .45);
+}
+.headline .hl-cover {
+  position: relative;
+  aspect-ratio: 21/9;
+  background:
+    radial-gradient(120% 130% at 12% 0%, rgba(201, 162, 75, .22), transparent 52%),
+    radial-gradient(110% 120% at 88% 100%, rgba(217, 79, 61, .18), transparent 52%),
+    linear-gradient(150deg, #1e3d60, #12283f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.headline .hl-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(115deg, transparent 0 16px, rgba(255,255,255,.03) 16px 17px);
+}
+.headline .hl-no {
+  font-family: var(--font-display);
+  font-size: clamp(56px, 12vw, 110px);
+  font-weight: 900;
+  color: rgba(201, 162, 75, .95);
+  letter-spacing: 2px;
+  line-height: 1;
+  text-shadow: 0 4px 30px rgba(0,0,0,.4);
+  position: relative;
+  z-index: 1;
+}
+.headline .hl-tag {
+  position: absolute;
+  top: 14px; left: 14px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(217, 79, 61, .95);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+}
+.headline .hl-tag::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  animation: pulse 2.2s ease-in-out infinite;
+}
+.headline .hl-play {
+  position: absolute;
+  right: 18px; bottom: 16px;
+  z-index: 2;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 253, 248, .94);
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 22px rgba(0,0,0,.4);
+  transition: transform .25s;
+}
+.headline:hover .hl-play { transform: scale(1.1); }
+.headline .hl-play svg { width: 20px; height: 20px; margin-left: 2px; }
+.headline .hl-body {
+  padding: 20px 24px 22px;
+  text-align: center;
+}
+.headline .hl-title {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 900;
+  letter-spacing: .5px;
+  line-height: 1.4;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.headline .hl-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.headline .hl-meta .hl-host {
+  font-weight: 700;
+  color: var(--brand);
+}
+.headline .hl-meta .hl-date {
+  color: var(--gold);
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.headline .hl-meta .sep {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+
 /* ================================================================
    VIDEO GRID — 视频卡片
    ================================================================ */
@@ -289,8 +462,21 @@ nav.topbar {
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+  position: relative;
   transition: transform .28s cubic-bezier(.22, 1, .36, 1), box-shadow .28s, border-color .28s;
 }
+/* 金色书脊线：报刊合订本细节 */
+.vcard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold-soft), transparent 70%);
+  opacity: 0;
+  transition: opacity .28s;
+  z-index: 3;
+}
+.vcard:hover::before { opacity: 1; }
 .vcard:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
@@ -323,6 +509,24 @@ nav.topbar {
   position: relative;
   z-index: 1;
   text-shadow: 0 2px 14px rgba(0,0,0,.35);
+}
+/* 主播名竖排章（仿图书藏书章，右侧） */
+.vcard .cover .host-seal {
+  position: absolute;
+  right: 7px; top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  color: rgba(255,253,248,.68);
+  border: 1px solid rgba(201,162,75,.4);
+  padding: 8px 4px;
+  border-radius: 4px;
+  background: rgba(0,0,0,.18);
+  z-index: 2;
+  max-height: 82%;
+  overflow: hidden;
 }
 .vcard .cover .ep {
   position: absolute;
@@ -379,6 +583,14 @@ nav.topbar {
   align-items: center;
   font-size: 11.5px;
   color: var(--ink-faint);
+}
+/* 日期章：仿邮戳 */
+.vcard .vmeta .vdate {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: .5px;
+  font-variant-numeric: tabular-nums;
 }
 .vcard .vmeta .vcomments {
   color: var(--brand);
@@ -661,6 +873,16 @@ section.player-card {
   background: rgba(184, 134, 11, .08);
   border-color: rgba(184, 134, 11, .22);
 }
+/* 播放页主播章：加麦克风小图标感 */
+.player-meta .tag.host-tag::before {
+  content: '';
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-right: 6px;
+  vertical-align: middle;
+}
 
 /* 评论区按钮 */
 .cmt-bar {
@@ -741,6 +963,58 @@ section.player-card {
 /* 播放页收紧 */
 section.player-card { margin: 0 auto 14px; }
 .cmt-bar { padding: 6px 0 12px; }
+
+/* ================================================================
+   EPISODE NAV — 上一期/下一期（仿报纸翻页）
+   ================================================================ */
+.ep-nav {
+  display: flex;
+  gap: 14px;
+  max-width: 720px;
+  margin: 0 auto 14px;
+}
+.ep-link {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-decoration: none;
+  padding: 14px 18px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition: transform .25s, box-shadow .25s, border-color .25s;
+  min-width: 0;
+}
+.ep-link:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(184, 134, 11, .4);
+}
+.ep-link.right { text-align: right; }
+.ep-link.ghost { background: transparent; border-style: dashed; opacity: .5; pointer-events: none; }
+.ep-link .ep-dir {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+}
+.ep-link .ep-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ep-link .ep-sub {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+}
+@media (max-width: 560px) {
+  .ep-nav { flex-direction: column; }
+  .ep-link.right { text-align: left; }
+}
 
 /* ================================================================
    PASSWORD GATE — 编辑部安检
@@ -943,6 +1217,15 @@ footer.footer {
 footer.footer .wrap {
   max-width: 1080px;
   margin: 0 auto;
+}
+/* 页脚刊号行 */
+.footer-issue {
+  display: block;
+  margin-top: 8px;
+  font-size: 10.5px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
 
 /* ---- Feedback CTA ---- */
@@ -1352,9 +1635,18 @@ section.player-card video { -webkit-tap-highlight-color: transparent; }
   .logo > div { font-size: 17px; }
   .logo small { font-size: 9.5px; }
   .nav a { font-size: 13px; padding: 5px 10px; }
-  .hero { padding: 48px 18px 38px; }
+  .hero { padding: 48px 18px 30px; }
   .hero h1 { letter-spacing: 2px; }
   .hero p { font-size: 15px; }
+  .hero::before { top: 18px; }
+  .masthead-meta { font-size: 10.5px; gap: 10px; letter-spacing: 1.5px; }
+  .masthead-meta::before, .masthead-meta::after { width: 34px; }
+  .headline { margin-bottom: 20px; }
+  .headline .hl-body { padding: 14px 16px 16px; }
+  .headline .hl-cover { aspect-ratio: 16/9; }
+  .headline .hl-play { width: 44px; height: 44px; right: 12px; bottom: 12px; }
+  .headline .hl-tag { top: 10px; left: 10px; padding: 4px 11px; font-size: 10.5px; }
+  .vcard .host-seal { right: 5px; font-size: 9.5px; padding: 6px 3px; }
   .card { flex-direction: column; }
   .card .thumb { min-height: 130px; width: 100%; }
   .card-grid { grid-template-columns: 1fr; padding: 0 16px 32px; }

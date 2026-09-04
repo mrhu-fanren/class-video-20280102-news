@@ -36,7 +36,7 @@
       <h3>视频专区</h3>
       <div class="hint">按时间倒序排列，点击即可观看每一期班级新闻。</div>
       <div class="search-wrap">
-        <input type="search" id="search" class="search-input" placeholder="搜索视频（标题 / 主播 / 简介）" autocomplete="off" />
+        <input type="search" id="search" class="search-input" placeholder="搜索视频（标题 / 主播 / 简介 / 期号）" autocomplete="off" />
       </div>
       <div class="vlist" id="list"><!-- 由 videos.js 渲染 --></div>
     </section>
@@ -47,7 +47,7 @@
   </div>
 
   <footer class="footer">
-    <div class="wrap">初2028届2班 · 新闻电台 ｜ 班级内部交流用途，请勿外传 ｜ <a href="dashboard.html" style="color:var(--ink-soft);text-decoration:underline;">数据看板</a></div>
+    <div class="wrap">初2028届2班 · 新闻电台 ｜ 班级内部交流用途，请勿外传 ｜ <a href="dashboard.html" style="color:var(--ink-soft);text-decoration:underline;">数据看板</a><span class="footer-issue">Class News Radio · Est. 2026</span></div>
   </footer>
 
   <div id="guestbook" style="max-width:960px;margin:0 auto 30px;padding:0 20px;"></div>
@@ -76,15 +76,17 @@
         }
         list.innerHTML = arr.map(function (v) {
           var no = (v.id.match(/\d+/) || ["0"])[0].padStart(2, "0");
+          var host = ((v.hosts || [])[0] || "").replace("主播：", "");
           return '<a class="vcard" href="play.html?id=' + v.id + '">' +
             '<div class="cover">' +
               '<span class="no">' + no + '</span>' +
+              (host ? '<span class="host-seal">' + host + '</span>' : '') +
               '<span class="play-ic"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>' +
             '</div>' +
             '<div class="vbody">' +
               '<div class="vtitle">' + v.title + '</div>' +
               '<div class="vmeta">' +
-                '<span>' + v.date + '</span>' +
+                '<span class="vdate">' + v.date + '</span>' +
                 '<span class="vcomments"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> ' + (counts[v.id] || 0) + '</span>' +
               '</div>' +
             '</div>' +

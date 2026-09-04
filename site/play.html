@@ -29,6 +29,7 @@
 
   <main class="wrap">
     <section class="player-card" id="stage"><!-- 由脚本渲染 --></section>
+    <nav class="ep-nav" id="epNav" style="display:none;"><!-- 上一期/下一期 --></nav>
 
     <section class="section comment-section">
       <h3>评论区 <span class="cmt-count" id="cmtCount">0 条评论</span></h3>
@@ -49,7 +50,7 @@
   </div>
 
   <footer class="footer">
-    <div class="wrap">初2028届2班 · 新闻电台 ｜ 班级内部交流用途，请勿外传 ｜ <a href="dashboard.html" style="color:var(--ink-soft);text-decoration:underline;">数据看板</a></div>
+    <div class="wrap">初2028届2班 · 新闻电台 ｜ 班级内部交流用途，请勿外传 ｜ <a href="dashboard.html" style="color:var(--ink-soft);text-decoration:underline;">数据看板</a><span class="footer-issue">Class News Radio · Est. 2026</span></div>
   </footer>
 
   <div id="guestbook" style="max-width:960px;margin:0 auto 30px;padding:0 20px;"></div>
@@ -104,6 +105,33 @@
             ? '<p class="intro-full">' + v.desc + '</p>'
             : '<details class="intro"><summary>详细介绍</summary><div class="intro-body">' + v.desc + '</div></details>') +
         '</div>';
+
+      // 上一期 / 下一期 导航
+      (function () {
+        var vids = window.VIDEOS || [];
+        var idx = vids.findIndex(function (x) { return x.id === id; });
+        if (idx < 0) return;
+        var prev = vids[idx + 1];   // 期号更小（更早）
+        var next = vids[idx - 1];   // 期号更大（更新）
+        if (!prev && !next) return;
+        var nav = document.getElementById('epNav');
+        var hostOf = function (x) { return ((x.hosts || [])[0] || "").replace("主播：", ""); };
+        var html = '';
+        if (prev) {
+          html += '<a class="ep-link" href="play.html?id=' + prev.id + '">' +
+            '<span class="ep-dir">← 更早一期</span>' +
+            '<span class="ep-name">' + prev.title.replace(/^第\d+期 · /, "") + '</span>' +
+            '<span class="ep-sub">' + hostOf(prev) + '</span></a>';
+        } else { html += '<span class="ep-link ghost"></span>'; }
+        if (next) {
+          html += '<a class="ep-link right" href="play.html?id=' + next.id + '">' +
+            '<span class="ep-dir">更新一期 →</span>' +
+            '<span class="ep-name">' + next.title.replace(/^第\d+期 · /, "") + '</span>' +
+            '<span class="ep-sub">' + hostOf(next) + '</span></a>';
+        } else { html += '<span class="ep-link ghost"></span>'; }
+        nav.innerHTML = html;
+        nav.style.display = '';
+      })();
 
       /* ===== 真实加载进度圈（基于实际缓冲字节，平滑 rAF 更新）+ 按需加载 ===== */
       (function () {

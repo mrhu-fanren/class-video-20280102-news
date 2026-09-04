@@ -36,13 +36,18 @@
       <span class="badge">ON AIR · 每天更新</span>
       <h1>初2028届2班<br/><span class="hl">新闻电台</span></h1>
       <p class="lead">这里是属于我们班的新闻频道——同学播报、班级新鲜事、活动风采，一期一会，记录我们的初中时光。</p>
+      <div class="masthead-meta" id="mastMeta"></div>
     </section>
 
-    <section class="section" id="videos">
-      <h3>视频专区</h3>
+    <section class="section" id="latest" style="padding-top:24px;">
+      <div id="headline"><!-- 由 videos.js 数据渲染最新一期头条 --></div>
+    </section>
+
+    <section class="section" id="videos" style="padding-top:12px;">
+      <h3>全部期数</h3>
       <div class="hint">班级新闻播报，点击即可观看每一期。</div>
       <div class="search-wrap">
-        <input type="search" id="search" class="search-input" placeholder="搜索视频（标题 / 主播 / 简介）" autocomplete="off" />
+        <input type="search" id="search" class="search-input" placeholder="搜索视频（标题 / 主播 / 简介 / 期号）" autocomplete="off" />
       </div>
       <div class="vlist" id="list"><!-- 由 videos.js 渲染 --></div>
     </section>
@@ -61,7 +66,7 @@
   </div>
 
   <footer class="footer">
-    <div class="wrap">初2028届2班 · 新闻电台 ｜ 班级内部交流用途，请勿外传 ｜ <a href="dashboard.html" style="color:var(--ink-soft);text-decoration:underline;">数据看板</a></div>
+    <div class="wrap">初2028届2班 · 新闻电台 ｜ 班级内部交流用途，请勿外传 ｜ <a href="dashboard.html" style="color:var(--ink-soft);text-decoration:underline;">数据看板</a><span class="footer-issue">Class News Radio · Est. 2026</span></div>
   </footer>
 
   <div id="guestbook" style="max-width:960px;margin:0 auto 30px;padding:0 20px;"></div>
@@ -76,6 +81,34 @@
       var search = document.getElementById("search");
       var videos = window.VIDEOS || [];
       if (!videos.length) { list.innerHTML = '<p>暂无视频，敬请期待～</p>'; return; }
+
+      // 刊号行：共 N 期 · 最近更新日期
+      var mm = document.getElementById("mastMeta");
+      if (mm) mm.textContent = "共 " + videos.length + " 期 · 最近更新 " + (videos[0] && videos[0].date || "");
+
+      // 头条大图：最新一期
+      var hd = document.getElementById("headline");
+      if (hd && videos[0]) {
+        var lv = videos[0];
+        var lno = (lv.id.match(/\d+/) || ["0"])[0];
+        var lhost = ((lv.hosts || [])[0] || "").replace("主播：", "");
+        hd.innerHTML =
+          '<a class="headline" href="play.html?id=' + lv.id + '">' +
+            '<div class="hl-cover">' +
+              '<span class="hl-tag">最新一期</span>' +
+              '<span class="hl-no">第' + lno + '期</span>' +
+              '<span class="hl-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>' +
+            '</div>' +
+            '<div class="hl-body">' +
+              '<div class="hl-title">' + lv.title.replace(/^第\d+期 · /, "") + '</div>' +
+              '<div class="hl-meta">' +
+                (lhost ? '<span class="hl-host">' + lhost + '</span><span class="sep"></span>' : '') +
+                '<span class="hl-date">' + lv.date + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</a>';
+      }
+
       var counts = await Store.getAllCommentCounts();
       function renderList(q) {
         q = (q || "").trim().toLowerCase();
@@ -90,15 +123,17 @@
         }
         list.innerHTML = arr.map(function (v) {
           var no = (v.id.match(/\d+/) || ["0"])[0].padStart(2, "0");
+          var host = ((v.hosts || [])[0] || "").replace("主播：", "");
           return '<a class="vcard" href="play.html?id=' + v.id + '">' +
             '<div class="cover">' +
               '<span class="no">' + no + '</span>' +
+              (host ? '<span class="host-seal">' + host + '</span>' : '') +
               '<span class="play-ic"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>' +
             '</div>' +
             '<div class="vbody">' +
               '<div class="vtitle">' + v.title + '</div>' +
               '<div class="vmeta">' +
-                '<span>' + v.date + '</span>' +
+                '<span class="vdate">' + v.date + '</span>' +
                 '<span class="vcomments"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> ' + (counts[v.id] || 0) + '</span>' +
               '</div>' +
             '</div>' +
