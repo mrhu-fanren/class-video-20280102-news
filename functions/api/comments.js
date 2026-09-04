@@ -3,6 +3,11 @@
 // POST /api/comments                 -> body {vid, name, text} 追加评论
 import { checkKV, json, rateLimit, clientIP } from "./_kv.js";
 
+// vid 白名单：只允许 ep 开头 + 2~3 位数字，防注入任意 key 污染 KV
+const VID_RE = /^ep\d{2,3}$/;
+// 每视频评论上限，超出裁最旧，防 KV 单 key 无限膨胀
+const MAX_PER_VID = 200;
+
 export async function onRequestGet({ request, env }) {
   const bad = checkKV(env);
   if (bad) return bad;
@@ -31,6 +36,8 @@ export async function onRequestPost({ request, env }) {
 
   const body = await request.json().catch(() => ({}));
   if (!body.vid || !body.text) return new Response("vid & text required", { status: 400 });
+  if (!VID_RE.test(String(body.vid))) return new Response("invalid vid", { status: 400 });
+
   const all = await env.NEWS_KV.get("comments", { type: "json" }) || {};
   all[body.vid] = all[body.vid] || [];
   all[body.vid].unshift({
@@ -38,6 +45,12 @@ export async function onRequestPost({ request, env }) {
     text: String(body.text).slice(0, 500),
     time: Date.now()
   });
-  await env.NEWS_KV.put("comments", JSON.stringify(all));
+  // 超上限裁最旧
+  if (all[body.vid].length > MAX_PER_VID) {
+    all[body.vid].splice(MAX_PER_VID);
+  }
+  try {
+    await env.NEWS_KV.put("comments", JSON.stringify(all));
+  } catch (e) { return new Response("storage error", { status: 500 }); }
   return json({ ok: true });
 }

@@ -6,4 +6,10 @@ node_modules/
 
 # 本地语音识别环境（体积很大，不入库）
 .asr-venv/
+
+# 一次性工作产物 / 隐私数据（不入库）
 ffmpeg2pass-0.log.mbtree
+ffmpeg2pass-0.log
+transcripts.json
+probe_result.json
+push-log.txt

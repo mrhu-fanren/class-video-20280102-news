@@ -1,26 +1,43 @@
-// GET /api/stats?pw=liulaoshi
-// 服务端校验管理密码，返回聚合数据（仅基于访客 IP + 时间，不涉姓名）：
+// POST /api/stats  数据看板接口
+// 服务端校验管理密码（密码存 Cloudflare Pages 环境变量 STATS_PW，不入代码），返回聚合数据：
 // { visits, guestbook, commentCount,
 //   totalVisits,   // 总访问次数
 //   dailyVisits,   // 每日访问总次数
 //   dailyPeople,   // 每日访问总人数（按 IP 去重）
 //   totalPeople,   // 访问总人数（按 IP 去重）
 //   guestbookCount }
-import { checkKV, json } from "./_kv.js";
-
-const DASH_PW = "liulaoshi";
+import { checkKV, json, rateLimit, clientIP } from "./_kv.js";
 
 // 按中国时区(UTC+8)取日期 YYYY-MM-DD
 function dayKey(ts) {
   return new Date(ts + 8 * 3600 * 1000).toISOString().slice(0, 10);
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestPost({ request, env }) {
   const bad = checkKV(env);
   if (bad) return bad;
 
-  const url = new URL(request.url);
-  if (url.searchParams.get("pw") !== DASH_PW) {
+  // 按 IP 限流：同一 IP 每分钟最多 10 次看板请求，防爆破
+  const ip = clientIP(request);
+  const rlKey = "rl:stats:" + ip;
+  const allowed = await rateLimit(env, rlKey, 10, 60);
+  if (!allowed) {
+    return new Response("too many requests", { status: 429 });
+  }
+
+  // 密码从环境变量读取（Cloudflare Pages → Settings → Environment variables → STATS_PW）
+  const dashPw = env.STATS_PW || "";
+  if (!dashPw) {
+    return new Response("server misconfigured: STATS_PW not set", { status: 500 });
+  }
+
+  // 用 POST body 传密码，避免密码出现在 URL / 浏览器历史 / 访问日志
+  let bodyPw = "";
+  try {
+    const body = await request.json();
+    bodyPw = (body && body.pw) ? String(body.pw) : "";
+  } catch (e) { bodyPw = ""; }
+  if (!bodyPw || bodyPw !== dashPw) {
     return new Response("unauthorized", { status: 401 });
   }
 
@@ -37,9 +54,9 @@ export async function onRequestGet({ request, env }) {
   visits.forEach(function (v) {
     if (v.status === "fail") { failedAttempts++; return; }  // 失败单独统计
     totalVisits++;
-    const ip = v.ip || "未知";
-    ipSet[ip] = 1;
-    if (dayKey(v.time) === today) { dailyVisits++; dayIpSet[ip] = 1; }
+    const pip = v.ip || "未知";
+    ipSet[pip] = 1;
+    if (dayKey(v.time) === today) { dailyVisits++; dayIpSet[pip] = 1; }
   });
 
   return json({

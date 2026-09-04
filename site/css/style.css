@@ -4,9 +4,8 @@
    - 无全页动画 / 无彩虹渐变 / 无玻璃滥用（移动端性能友好）
    - 标题思源宋体（报刊感），正文思源黑体
    - 图标全部用内联 SVG，不用 emoji
+   - 字体在 HTML <head> 用 <link> 加载（配 preconnect，见各页面）
    ================================================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700;900&display=swap');
 
 :root {
   /* 纸感编辑部色板 */

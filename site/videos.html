@@ -6,6 +6,14 @@
   <meta name="robots" content="noindex, nofollow" />
   <title>视频专区 · 初2028届2班新闻电台</title>
   <meta name="description" content="初2028届2班新闻电台全部视频归档。" />
+  <meta name="theme-color" content="#16406b" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta property="og:title" content="视频专区 · 初2028届2班新闻电台" />
+  <meta property="og:description" content="42期班级新闻播报，点击即可观看。" />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700;900&display=swap" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -59,7 +67,7 @@
         q = (q || "").trim().toLowerCase();
         var arr = videos.filter(function (v) {
           if (!q) return true;
-          var hay = (v.title + " " + (v.hosts || []).join(" ") + " " + v.desc).toLowerCase();
+          var hay = (v.id + " " + v.title + " " + (v.hosts || []).join(" ") + " " + v.date + " " + v.desc).toLowerCase();
           return hay.indexOf(q) !== -1;
         });
         if (!arr.length) {
@@ -67,7 +75,7 @@
           return;
         }
         list.innerHTML = arr.map(function (v) {
-          var no = String(videos.length - videos.indexOf(v)).padStart(2, "0");
+          var no = (v.id.match(/\d+/) || ["0"])[0].padStart(2, "0");
           return '<a class="vcard" href="play.html?id=' + v.id + '">' +
             '<div class="cover">' +
               '<span class="no">' + no + '</span>' +

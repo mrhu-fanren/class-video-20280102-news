@@ -23,7 +23,12 @@ export async function onRequest({ request, env }) {
   const range = request.headers.get("range");
   if (range) reqHeaders.set("range", range);
 
-  const asset = await fetch(assetUrl, { headers: reqHeaders });
+  let asset;
+  try {
+    asset = await fetch(assetUrl, { headers: reqHeaders });
+  } catch (e) {
+    return new Response("Upstream fetch failed", { status: 502 });
+  }
   if (!asset.ok) return new Response("Not Found", { status: 404 });
 
   const respHeaders = new Headers(asset.headers);
@@ -33,11 +38,11 @@ export async function onRequest({ request, env }) {
   respHeaders.set("Accept-Ranges", "bytes");
   respHeaders.set("X-Content-Type-Options", "nosniff");
 
-  // 边缘缓存：让 CDN 缓存静态资源本身（fetch 目标），Function 响应不缓存
+  // 边缘缓存：完整文件(200)边缘缓存 24h，Range 切片(206)不缓存
   if (asset.status === 206) {
     respHeaders.set("Cache-Control", "no-store");
   } else {
-    respHeaders.set("Cache-Control", "no-store");  // Range 请求频繁，不缓存切片
+    respHeaders.set("Cache-Control", "public, max-age=86400, s-maxage=86400");
   }
 
   return new Response(asset.body, { status: asset.status, headers: respHeaders });

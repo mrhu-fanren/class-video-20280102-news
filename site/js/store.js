@@ -131,11 +131,15 @@ window.Store = (function () {
     },
 
     // ---- 看板统计（需管理密码）----
-    // 后端可用：服务端校验密码，错则返回 {error:"unauthorized"}
+    // 后端可用：POST body 传密码（不进 URL/浏览器历史），服务端校验，错则返回 {error:"unauthorized"}
     // 后端不可用：本地回退计算（本地本就无强保护）
     getStats: async function (pw) {
       try {
-        const res = await fetch("/api/stats?pw=" + encodeURIComponent(pw));
+        const res = await fetch("/api/stats", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pw: pw })
+        });
         if (res.ok) return await res.json();
         if (res.status === 401) return { error: "unauthorized" };
         throw new Error("bad");
