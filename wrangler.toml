@@ -8,3 +8,4 @@ compatibility_date = "2024-09-23"
 [[kv_namespaces]]
 binding = "NEWS_KV"
 id = "92e4c028a2dc46f09139e048563a5aec"
+preview_id = "2e675026bdfc46a3b2fe53cc49d1c550"
