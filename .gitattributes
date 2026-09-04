@@ -1,0 +1,3 @@
+# 强制 bat 脚本在 Git 检出时保持 CRLF 行尾（cmd 解析 LF 会闪退）
+*.bat text eol=crlf
+*.cmd text eol=crlf

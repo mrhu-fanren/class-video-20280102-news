@@ -98,7 +98,7 @@ if errorlevel 1 (
 )
 
 echo [2/3] Pushing to GitHub (will try mirror if direct fails)...
-REM --- 通道顺序 = 实测可用优先。2026-08-31 实测：ghfast.top / gh-proxy.com 可用 ---
+REM --- Channel order: tested-working first (2026-08-31: ghfast.top / gh-proxy.com OK) ---
 set "REMOTES[0]=https://github.com/mrhu-fanren/class-video-20280102-news.git"
 set "REMOTES[1]=https://ghfast.top/https://github.com/mrhu-fanren/class-video-20280102-news.git"
 set "REMOTES[2]=https://gh-proxy.com/https://github.com/mrhu-fanren/class-video-20280102-news.git"
