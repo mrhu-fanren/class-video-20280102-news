@@ -97,6 +97,7 @@
         hd.innerHTML =
           '<a class="headline" href="play.html?id=' + lv.id + '">' +
             '<div class="hl-cover">' +
+              '<img class="hl-cover-img" src="covers/' + lv.id + '.webp" alt="' + Store.esc(lv.title) + '" />' +
               '<span class="hl-tag">最新一期</span>' +
               '<span class="hl-no">第' + lno + '期</span>' +
               '<span class="hl-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>' +
@@ -128,6 +129,7 @@
           var host = ((v.hosts || [])[0] || "").replace("主播：", "");
           return '<a class="vcard reveal" href="play.html?id=' + v.id + '">' +
             '<div class="cover">' +
+              '<img class="cover-img" src="covers/' + v.id + '.webp" alt="' + Store.esc(v.title) + '" loading="lazy" />' +
               '<span class="no">' + no + '</span>' +
               (host ? '<span class="host-seal">' + host + '</span>' : '') +
               '<span class="play-ic"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>' +
