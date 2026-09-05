@@ -66,7 +66,18 @@
     <a href="#guestbook" onclick="setTimeout(function(){var t=document.getElementById('gb-text');if(t)t.focus();},300)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> 问题建议反馈</a>
   </div>
 
-  <div id="guestbook" class="guestbook-slot"><!-- 由 guestbook.js 渲染 --></div>
+  <div id="guestbook" class="guestbook-slot">
+    <div class="gb-head">
+      <h3>班级留言板</h3>
+      <p class="hint">写下你想对班级说的话，大家一起看～</p>
+    </div>
+    <form id="gb-form" class="gb-form">
+      <input id="gb-name" type="text" maxlength="20" placeholder="你的昵称（选填，留空则显示为「匿名」）" autocomplete="off" />
+      <textarea id="gb-text" rows="3" placeholder="说点什么…" required></textarea>
+      <button type="submit">发送留言</button>
+    </form>
+    <div class="gb-list" id="gb-list"><!-- 由 guestbook.js 渲染列表 --></div>
+  </div>
 
   <footer class="footer">
     <div class="wrap">初2028届2班 · 新闻电台 ｜ 班级内部交流用途，请勿外传 ｜ <a href="dashboard.html" style="color:var(--ink-soft);text-decoration:underline;">数据看板</a><span class="footer-issue">Class News Radio · Est. 2026</span></div>
