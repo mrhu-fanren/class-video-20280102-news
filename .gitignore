@@ -13,3 +13,6 @@ ffmpeg2pass-0.log
 transcripts.json
 probe_result.json
 push-log.txt
+
+# MediaPipe 模型（可重新下载）
+.models/
