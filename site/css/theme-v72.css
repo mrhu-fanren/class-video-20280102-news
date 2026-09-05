@@ -170,13 +170,54 @@ main.wrap,.section{max-width:1320px}
 }
 .section .hint{color:var(--ink-faint);font-size:13px;letter-spacing:1px}
 
-/* ============ 整齐网格封面列表（v72-2：由瀑布流改为统一比例网格） ============ */
-.vlist,.stage{
+/* ---- 分区头行：标题左 + 版式切换右 ---- */
+.sec-row{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.view-toggle{
+  display:inline-flex;background:rgba(255,255,255,.04);
+  border:1px solid rgba(230,220,255,.1);border-radius:999px;padding:3px;
+  margin-bottom:2px;
+}
+.vt-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  border:none;background:transparent;color:var(--ink-faint);
+  font-size:12.5px;font-weight:600;letter-spacing:1px;
+  padding:7px 16px;border-radius:999px;cursor:pointer;
+  transition:all .25s var(--ease-spring);font-family:inherit;
+}
+.vt-btn:hover{color:var(--ink-2)}
+.vt-btn.active{
+  color:#0a0a16;background:var(--gold);
+  box-shadow:0 2px 12px rgba(217,179,106,.35);
+}
+
+/* ============ 列表容器：两种版式（v72-3） ============
+   .mflow = 瀑布流（封面原比例，画廊感，少量精选）
+   .vgrid = 整齐网格（统一 16:10 裁切，归档浏览）
+   默认旧 class .vlist/.stage 兼容为网格 */
+
+/* ---- 整齐网格 ---- */
+.vgrid,.vlist,.stage{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:36px 24px;
   max-width:none;padding:0;margin:0;
 }
+/* ---- 瀑布流 ---- */
+.mflow{
+  column-count:3;column-gap:26px;
+  max-width:none;padding:0;margin:0;
+}
+.mflow .poster{
+  break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:36px;
+}
+.mflow .poster .ph{
+  aspect-ratio:auto;
+}
+.mflow .poster .ph img{
+  position:static;width:100%;height:auto;object-fit:cover;
+}
+@media(max-width:1100px){.mflow{column-count:2}}
+@media(max-width:720px){.mflow{column-count:1}}
 .poster{
   position:relative;display:block;text-decoration:none;color:inherit;cursor:pointer;
   margin:0;
@@ -241,7 +282,7 @@ footer.footer a{color:var(--ink-soft)}
 
 /* ============ 响应式 ============ */
 @media(max-width:1100px){
-  .vlist,.stage{grid-template-columns:repeat(3,1fr)}
+  .vgrid,.vlist,.stage{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:860px){
   .feature{grid-template-columns:1fr}
@@ -253,7 +294,7 @@ footer.footer a{color:var(--ink-soft)}
 @media(max-width:720px){
   .topbar .wrap{padding:14px 18px}
   nav.topbar .nav a{font-size:12.5px;padding:6px 11px}
-  .vlist,.stage{grid-template-columns:repeat(2,1fr);gap:24px 14px}
+  .vgrid,.vlist,.stage{grid-template-columns:repeat(2,1fr);gap:24px 14px}
   .poster{margin-bottom:0}
   .poster .ttl{font-size:14px}
   .hero{padding:44px 18px 30px}

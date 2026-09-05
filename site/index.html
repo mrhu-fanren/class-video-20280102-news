@@ -46,14 +46,22 @@
     <!-- 头条：最新一期 · 杂志开页 -->
     <div id="featureWrap"></div>
 
-    <!-- 全部期数 -->
+    <!-- 全部期数（瀑布流 / 整齐网格 双版式切换） -->
     <section class="section" id="videos">
-      <h3>全部期数</h3>
-      <div class="hint">班级新闻播报 · 共 <span id="totalN">42</span> 期</div>
+      <div class="sec-row">
+        <div>
+          <h3>全部期数</h3>
+          <div class="hint">班级新闻播报 · 共 <span id="totalN">42</span> 期</div>
+        </div>
+        <div class="view-toggle" id="viewToggle" role="tablist" aria-label="切换版式">
+          <button type="button" class="vt-btn active" data-view="mflow" role="tab" aria-selected="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="6" height="6" rx="1"/><rect x="4" y="15" width="5" height="6" rx="1"/><rect x="14" y="3" width="6" height="10" rx="1"/><rect x="14" y="17" width="6" height="4" rx="1"/></svg>瀑布</button>
+          <button type="button" class="vt-btn" data-view="vgrid" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>整齐</button>
+        </div>
+      </div>
       <div class="search-wrap reveal in">
         <input type="search" id="search" class="search-input" placeholder="搜索视频（标题 / 主播 / 简介 / 期号）" autocomplete="off" />
       </div>
-      <div class="vlist stage" id="list"><!-- poster 由 videos.js 数据渲染 --></div>
+      <div class="stage mflow" id="list"><!-- poster 由 videos.js 数据渲染 --></div>
     </section>
 
     <section class="section" id="about">
@@ -138,7 +146,7 @@
           '</a>';
       }
 
-      // ===== 全部期数：瀑布流封面 =====
+      // ===== 全部期数：双版式（瀑布流 / 整齐网格）=====
       var counts = await Store.getAllCommentCounts();
       function poster(v) {
         var no = noOf(v.id).padStart(2, "0");
@@ -159,6 +167,21 @@
         '</a>';
       }
 
+      // 当前版式（mflow 瀑布流 / vgrid 整齐网格）
+      var curView = "mflow";
+      function applyView(view) {
+        curView = view;
+        list.className = "stage " + view;
+        // 更新按钮态
+        var btns = document.querySelectorAll(".vt-btn");
+        for (var i = 0; i < btns.length; i++) {
+          var on = btns[i].getAttribute("data-view") === view;
+          btns[i].className = "vt-btn" + (on ? " active" : "");
+          btns[i].setAttribute("aria-selected", on ? "true" : "false");
+        }
+        renderList(search ? search.value : "");
+      }
+
       function renderList(q) {
         q = (q || "").trim().toLowerCase();
         var arr = videos.filter(function (v) {
@@ -167,7 +190,7 @@
           return hay.indexOf(q) !== -1;
         });
         if (!arr.length) {
-          list.innerHTML = '<p class="gb-empty" style="text-align:center;grid-column:1/-1;">没有找到匹配「' + Store.esc(q) + '」的视频。</p>';
+          list.innerHTML = '<p class="gb-empty" style="text-align:center;">没有找到匹配「' + Store.esc(q) + '」的视频。</p>';
           return;
         }
         list.innerHTML = arr.map(poster).join('');
@@ -175,6 +198,14 @@
       }
       renderList("");
       if (search) search.addEventListener("input", function () { renderList(search.value); });
+
+      // 版式切换
+      var toggle = document.getElementById("viewToggle");
+      if (toggle) toggle.addEventListener("click", function (e) {
+        var btn = e.target.closest ? e.target.closest(".vt-btn") : null;
+        if (!btn || !btn.getAttribute("data-view")) return;
+        applyView(btn.getAttribute("data-view"));
+      });
     })();
   </script>
 </body>
