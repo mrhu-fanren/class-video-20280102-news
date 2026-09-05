@@ -1897,3 +1897,147 @@ section.player-card video { -webkit-tap-highlight-color: transparent; }
   .section { padding: 32px 16px; }
   .vcard .vtitle { font-size: 13px; }
 }
+
+/* ================================================================
+   v71 CLEAN BROADCAST — 克制美学覆盖层
+   原则：金色只留一处主角，其余转中性精致；加强留白与层次
+   ================================================================ */
+
+/* ---- 封面内暗化：从"半透黑"改"双层渐变"更有电影感 ---- */
+.vcard .cover::before {
+  background:
+    linear-gradient(180deg, rgba(10,15,28,.18) 0%, transparent 40%, rgba(10,15,28,.66) 100%);
+}
+
+/* ---- 期号：去掉"信封框"，改成纯粹的发光大数字（极简有力量） ---- */
+.vcard .cover .no {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  font-size: 44px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 24px rgba(0,0,0,.6), 0 2px 3px rgba(0,0,0,.5);
+}
+.vcard:hover .cover .no {
+  text-shadow: 0 0 34px rgba(232,193,90,.35), 0 2px 3px rgba(0,0,0,.5);
+}
+
+/* ---- 主播章：从"金边重阴影"转"极简半透白边"（退到背景层） ---- */
+.vcard .cover .host-seal {
+  border-color: rgba(255,255,255,.28);
+  background: rgba(10,15,28,.22);
+  color: rgba(255,255,255,.82);
+  box-shadow: none;
+  letter-spacing: 3px;
+}
+
+/* ---- 播放图标：hover 时才强化（平时半透明） ---- */
+.vcard .cover .play-ic {
+  opacity: .55;
+  transition: opacity .3s, transform .35s var(--ease-spring);
+}
+.vcard:hover .cover .play-ic { opacity: 1; }
+
+/* ---- 评论数胶囊 → 转中性（去掉金色胶囊，减噪） ---- */
+.vcard .vmeta .vcomments {
+  color: var(--ink-faint);
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--line-soft);
+}
+.vcard .vmeta .vcomments svg { color: var(--ink-faint); }
+
+/* ---- hero 标题：hl 从"金红渐变文字"改"单色亮金 + 温柔光晕" ---- */
+.hero h1 .hl {
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: initial;
+  color: var(--gold-soft);
+  filter: none;
+  text-shadow: 0 0 40px rgba(232,193,90,.28);
+}
+
+/* ---- masthead 刊号行：加小标签质感 ---- */
+.masthead-meta {
+  font-weight: 500;
+  letter-spacing: 3px;
+}
+
+/* ---- 卡片 hover：柔和上浮 + 金色描边亮起（替代金色胶囊） ---- */
+.vcard { border-color: var(--line); }
+.vcard:hover { border-color: rgba(232,193,90,.4); }
+
+/* ---- 评论区昵称：转白，保持简洁（金色只留给标题线） ---- */
+.gb-meta b { color: var(--ink); font-weight: 600; }
+
+/* ---- 留言板表单按钮：品牌蓝 → 更现代的"金 CTA"？不，保留蓝但纯色干净 ---- */
+.gb-form button, #cform button {
+  background: var(--brand);
+  border-radius: 8px;
+}
+.gb-form button:hover, #cform button:hover {
+  background: var(--brand-deep);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(59,130,196,.35);
+}
+
+/* ---- 头条期号：更有气场的超大字形 + 顶部小标签 ---- */
+.headline .hl-cover .hl-no {
+  font-size: clamp(70px, 14vw, 140px);
+  letter-spacing: 4px;
+  text-shadow: 0 6px 40px rgba(0,0,0,.55);
+}
+.headline .hl-cover .hl-tag {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  background: rgba(10,15,28,.5);
+  border: 1px solid rgba(255,255,255,.18);
+}
+
+/* ---- 卡片封面圆角与呼吸 ---- */
+.vcard { border-radius: 14px; }
+.vcard:hover { box-shadow: 0 22px 48px rgba(0,0,0,.5), 0 6px 14px rgba(0,0,0,.3); }
+
+/* ---- 视频标题：字体加重，行距收紧更精致 ---- */
+.vcard .vtitle {
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+
+/* ---- 分区大标题：居中更聚焦，hint 与标题拉开 ---- */
+.section { padding: 48px 24px 20px; }
+.section h3 {
+  font-size: 26px;
+  letter-spacing: 2px;
+}
+.section h3::after {
+  width: 52px;
+  height: 3px;
+  margin-top: 12px;
+}
+.section .hint {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+/* ---- 顶部导航：更轻的玻璃 + 更细的 logo 字距 ---- */
+nav.topbar { background: rgba(10,15,28,.72); }
+.logo > div { letter-spacing: 3px; }
+.logo small { letter-spacing: 3px; }
+
+/* ---- 密码门标题区：更聚焦 ---- */
+#gate h2 { font-size: 24px; letter-spacing: 2px; }
+
+/* ---- 全局细节：图片渲染更细腻 ---- */
+img { -webkit-user-drag: none; }
+
+/* ---- 移动端收窄 v71 覆盖 ---- */
+@media (max-width: 640px) {
+  .section { padding: 34px 16px 14px; }
+  .section h3 { font-size: 22px; }
+  .vcard .cover .no { font-size: 36px; }
+  .headline .hl-cover .hl-no { font-size: clamp(52px, 18vw, 90px); }
+}
