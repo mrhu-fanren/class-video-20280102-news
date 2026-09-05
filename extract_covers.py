@@ -1,133 +1,115 @@
 # -*- coding: utf-8 -*-
 """
-extract_covers.py — v3：真·人脸检测版
-用 OpenCV 4.x Haar 级联检测主播人脸，选人脸最大/最正的帧做封面。
-策略：
-1. 0~8s 每 0.5s 抽一帧（新闻开头主播出镜）
-2. Haar 检测人脸：有人脸 → 按面积+清晰度评分选最佳
-3. 无人脸 → 回退到「肤色+亮度+清晰度」评分选帧（保证有封面，且大概率是人物/标题画面）
-4. 输出 640px 内 webp
+extract_covers.py — v4：全片扫描版（用户反馈很多封面不是人脸）
+修复：
+1. 之前只在 0~8s 采样，片头/黑屏/新闻画面导致抽错帧
+2. 改为流式读取整个视频前 90 秒，每 0.75s 一帧
+3. Haar 正面 + 侧面级联组合检测，参数放宽（minNeighbors=3, minSize=40）
+4. 选人脸面积占比最大的帧
 """
-import subprocess, os, sys, glob
+import os, sys, glob
 import cv2
 
 sys.stdout.reconfigure(encoding='utf-8')
 ROOT = r"C:\Users\mr hu\WorkBuddy\2026-07-08-10-21-40"
-FFMPEG = os.path.join(ROOT, ".asr-venv", "Lib", "site-packages", "imageio_ffmpeg", "binaries", "ffmpeg-win-x86_64-v7.1.exe")
 VID_DIR = os.path.join(ROOT, "site", "videos")
 OUT_DIR = os.path.join(ROOT, "site", "covers")
 os.makedirs(OUT_DIR, exist_ok=True)
 
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-if face_cascade.empty():
+cascade_dir = cv2.data.haarcascades
+front = cv2.CascadeClassifier(cascade_dir + "haarcascade_frontalface_default.xml")
+profile = cv2.CascadeClassifier(cascade_dir + "haarcascade_profileface.xml")
+if front.empty():
     print("FATAL: cascade load failed")
     sys.exit(1)
 
-def grab_frame(video, t):
-    out = os.path.join(OUT_DIR, "_tmp_frame.jpg")
-    r = subprocess.run([FFMPEG, "-y", "-ss", str(t), "-i", video, "-frames:v", "1",
-                        "-vf", "scale=640:640:force_original_aspect_ratio=decrease", "-q:v", "4", out],
-                       capture_output=True, text=True, encoding="utf-8", errors="ignore")
-    if r.returncode != 0 or not os.path.exists(out):
-        return None
-    img = cv2.imread(out)
-    if os.path.exists(out):
-        try: os.remove(out)
-        except: pass
-    return img
-
 def detect_faces(img):
+    """正面 + 侧面（左右翻转）检测"""
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray = cv2.equalizeHist(gray)
-    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.08, minNeighbors=4, minSize=(50, 50))
+    faces = front.detectMultiScale(gray, scaleFactor=1.08, minNeighbors=3, minSize=(40, 40))
+    if len(faces) == 0:
+        faces = profile.detectMultiScale(gray, scaleFactor=1.08, minNeighbors=3, minSize=(40, 40))
+    if len(faces) == 0:
+        gray_flip = cv2.flip(gray, 1)
+        faces = profile.detectMultiScale(gray_flip, scaleFactor=1.08, minNeighbors=3, minSize=(40, 40))
+        # 翻转回原坐标
+        w = img.shape[1]
+        faces = [(w - x - fw, y, fw, fh) for (x, y, fw, fh) in faces]
     return faces
 
-def face_frame_score(img, faces):
-    """有人脸时：面积大 + 清晰 + 人脸居中"""
+def best_face_ratio(img, faces):
     h, w = img.shape[:2]
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    lap = cv2.Laplacian(gray, cv2.CV_64F).var()
-    clarity = min(1.0, lap / 500.0)
-    best_area = 0
-    best_center = 0.5
-    for (x, y, fw, fh) in faces:
-        area = fw * fh
-        if area > best_area:
-            best_area = area
-            cx = (x + fw / 2) / w
-            cy = (y + fh / 2) / h
-            best_center = max(0, 1 - (abs(cx - 0.5) + abs(cy - 0.4)))
-    area_ratio = best_area / (w * h)
-    return clarity * 0.3 + min(1.0, area_ratio * 6) * 0.5 + best_center * 0.2, area_ratio
-
-def fallback_score(img):
-    """无人脸回退：肤色+亮度+清晰度+居中"""
-    h, w = img.shape[:2]
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    brightness = gray.mean()
-    if brightness < 40 or brightness > 235:
-        return -0.5
-    lap = cv2.Laplacian(gray, cv2.CV_64F).var()
-    clarity = min(1.0, lap / 400.0)
-    ycrcb = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
-    skin = cv2.inRange(ycrcb, (0, 133, 77), (255, 173, 127))
-    skin_ratio = skin.mean() / 255.0
-    if skin_ratio < 0.03:
-        skin_score = -0.3
-    elif skin_ratio < 0.08:
-        skin_score = skin_ratio / 0.08
-    elif skin_ratio <= 0.5:
-        skin_score = 1.0
-    else:
-        skin_score = max(0, 1 - (skin_ratio - 0.5) / 0.3)
-    return clarity * 0.35 + skin_score * 0.45 + 0.2 * 0.5
+    if len(faces) == 0:
+        return 0
+    return max(fw * fh for (x, y, fw, fh) in faces) / (w * h)
 
 def main():
     vids = sorted(glob.glob(os.path.join(VID_DIR, "ep*.mp4")),
                   key=lambda p: int(os.path.basename(p)[2:4]))
-    ok, face_ok, fallback, fail = 0, 0, 0, 0
-    fallback_list = []
+    face_ok, fail = 0, 0
+    low_list = []
     for v in vids:
         ep = os.path.basename(v)[2:4]
-        out_webp = os.path.join(OUT_DIR, f"ep{ep}.webp")
-        best_img = None
-        best_face = None
-        best_fb = None
-        best_fs, best_ar = -10, 0
-        best_fb_score = -10
-        for t in [i * 0.5 for i in range(17)]:  # 0~8s
-            img = grab_frame(v, t)
-            if img is None:
-                continue
-            faces = detect_faces(img)
-            if len(faces) > 0:
-                s, ar = face_frame_score(img, faces)
-                if s > best_fs:
-                    best_fs, best_ar, best_face = s, ar, img
-            else:
-                fb = fallback_score(img)
-                if fb > best_fb_score:
-                    best_fb_score, best_fb = fb, img
-        if best_face is not None:
-            chosen, tag = best_face, f"FACE area={best_ar*100:.0f}%"
-            face_ok += 1
-        elif best_fb is not None:
-            chosen, tag = best_fb, "FALLBACK(无人脸)"
-            fallback += 1
-            fallback_list.append(ep)
-        else:
+        cap = cv2.VideoCapture(v)
+        if not cap.isOpened():
+            print(f"ep{ep}: CANNOT OPEN")
             fail += 1
-            print(f"ep{ep}: FAIL")
             continue
-        cv2.imwrite(out_webp, chosen, [cv2.IMWRITE_WEBP_QUALITY, 84])
-        sz = os.path.getsize(out_webp) / 1024
-        h, w = chosen.shape[:2]
-        ok += 1
-        print(f"ep{ep}: {w}x{h} {tag} -> {sz:.0f}KB")
+        fps = cap.get(cv2.CAP_PROP_FPS) or 25
+        total = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        dur = total / fps
+        # 采样前 90 秒（或整片），每 0.75s 一帧
+        scan_end = min(dur, 90)
+        step = max(1, int(fps * 0.75))
+        max_frames = int(fps * scan_end)
+        best_img, best_ratio, best_t = None, 0, -1
+        frame_idx = 0
+        while frame_idx < max_frames:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+            ok, img = cap.read()
+            if not ok:
+                break
+            # 缩小以加速（宽度 480）
+            hh, ww = img.shape[:2]
+            if ww > 480:
+                scale = 480 / ww
+                img_small = cv2.resize(img, (480, int(hh * scale)))
+            else:
+                img_small = img
+            faces = detect_faces(img_small)
+            ratio = best_face_ratio(img_small, faces)
+            if ratio > best_ratio:
+                best_ratio = ratio
+                best_img = img  # 用原图（全分辨率）
+                best_t = frame_idx / fps
+            frame_idx += step
+        cap.release()
+        if best_img is None or best_ratio < 0.03:
+            fail += 1
+            low_list.append(ep)
+            print(f"ep{ep}: LOW ({best_ratio*100:.1f}%) t={best_t:.0f}s")
+            # 也保存一帧兜底
+            if best_img is not None:
+                hh, ww = best_img.shape[:2]
+                if ww > 640:
+                    scale = 640 / ww
+                    best_img = cv2.resize(best_img, (640, int(hh * scale)))
+                cv2.imwrite(os.path.join(OUT_DIR, f"ep{ep}.webp"), best_img, [cv2.IMWRITE_WEBP_QUALITY, 84])
+            continue
+        # 保存：缩到 640 内
+        hh, ww = best_img.shape[:2]
+        if ww > 640:
+            scale = 640 / ww
+            best_img = cv2.resize(best_img, (640, int(hh * scale)))
+        cv2.imwrite(os.path.join(OUT_DIR, f"ep{ep}.webp"), best_img, [cv2.IMWRITE_WEBP_QUALITY, 84])
+        face_ok += 1
+        sz = os.path.getsize(os.path.join(OUT_DIR, f"ep{ep}.webp")) // 1024
+        print(f"ep{ep}: FACE {best_ratio*100:.0f}% t={best_t:.0f}s -> {sz}KB")
     print("=" * 60)
-    print(f"完成: {ok} 成功 ({face_ok} 含人脸, {fallback} 回退), {fail} 失败")
-    if fallback_list:
-        print("回退(无人脸)期号:", ",".join(fallback_list))
+    print(f"完成: {face_ok} 含人脸, {fail} 低/失败")
+    if low_list:
+        print("低人脸期号:", ",".join(low_list))
 
 if __name__ == "__main__":
     main()
