@@ -1450,6 +1450,24 @@ footer.footer .wrap {
 /* ================================================================
    GUESTBOOK
    ================================================================ */
+/* 留言板插槽：独立底部区域（在 footer 之前，视觉上醒目） */
+.guestbook-slot {
+  max-width: 960px;
+  margin: 0 auto 34px;
+  padding: 30px 24px 10px;
+  position: relative;
+  z-index: 5;
+  border-top: 1px solid var(--line-soft);
+}
+.guestbook-slot::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232, 193, 90, .4), transparent);
+}
 .guestbook-wrap {
   max-width: 720px;
   margin: 0 auto 40px;
