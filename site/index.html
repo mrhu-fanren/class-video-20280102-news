@@ -6,51 +6,54 @@
   <meta name="robots" content="noindex, nofollow" />
   <title>初2028届2班 · 新闻电台</title>
   <meta name="description" content="初2028届2班班级新闻电台，每天更新班级新闻播报视频。" />
-  <meta name="theme-color" content="#0a0f1c" />
+  <meta name="theme-color" content="#0a0a16" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <meta property="og:title" content="初2028届2班 · 新闻电台" />
   <meta property="og:description" content="同学播报、班级新鲜事，一期一会，记录我们的初中时光。" />
   <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700;900&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700;900&display=swap" />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/theme-v72.css" />
 </head>
 <body>
   <div id="top-tape"></div>
+
   <header class="topbar">
     <div class="wrap">
       <div class="logo">
         <span class="dot"></span>
-        <div>新闻电台<small>初2028届 · 2班</small></div>
+        <div>新闻电台<small>CLASS NEWS · 初2028届 · 2班</small></div>
       </div>
       <nav class="nav">
         <a href="index.html" class="active">首页</a>
-        <a href="videos.html">视频专区</a>
+        <a href="videos.html">全部期数</a>
         <a href="#about">关于</a>
       </nav>
     </div>
   </header>
 
   <main class="wrap">
+    <!-- 刊头 -->
     <section class="hero">
-      <span class="badge reveal in">ON AIR · 每天更新</span>
+      <span class="badge reveal in">ON AIR · 每周更新</span>
       <h1 class="reveal in">初2028届2班<br/><span class="hl">新闻电台</span></h1>
       <p class="lead reveal in">这里是属于我们班的新闻频道——同学播报、班级新鲜事、活动风采，一期一会，记录我们的初中时光。</p>
       <div class="masthead-meta reveal in" id="mastMeta"></div>
     </section>
 
-    <section class="section" id="latest" style="padding-top:24px;">
-      <div id="headline"><!-- 由 videos.js 数据渲染最新一期头条 --></div>
-    </section>
+    <!-- 头条：最新一期 · 杂志开页 -->
+    <div id="featureWrap"></div>
 
-    <section class="section" id="videos" style="padding-top:12px;">
-      <h3 class="reveal in">全部期数</h3>
-      <div class="hint reveal in">班级新闻播报，点击即可观看每一期。</div>
+    <!-- 全部期数 -->
+    <section class="section" id="videos">
+      <h3>全部期数</h3>
+      <div class="hint">班级新闻播报 · 共 <span id="totalN">42</span> 期</div>
       <div class="search-wrap reveal in">
         <input type="search" id="search" class="search-input" placeholder="搜索视频（标题 / 主播 / 简介 / 期号）" autocomplete="off" />
       </div>
-      <div class="vlist" id="list" data-reveal="1"><!-- 由 videos.js 渲染 --></div>
+      <div class="vlist stage" id="list"><!-- poster 由 videos.js 数据渲染 --></div>
     </section>
 
     <section class="section" id="about">
@@ -95,35 +98,67 @@
       var videos = window.VIDEOS || [];
       if (!videos.length) { list.innerHTML = '<p>暂无视频，敬请期待～</p>'; return; }
 
-      // 刊号行：共 N 期 · 最近更新日期
+      // 刊号行
       var mm = document.getElementById("mastMeta");
       if (mm) mm.textContent = "共 " + videos.length + " 期 · 最近更新 " + (videos[0] && videos[0].date || "");
+      var tn = document.getElementById("totalN");
+      if (tn) tn.textContent = videos.length;
 
-      // 头条大图：最新一期
-      var hd = document.getElementById("headline");
-      if (hd && videos[0]) {
-        var lv = videos[0];
-        var lno = (lv.id.match(/\d+/) || ["0"])[0];
-        var lhost = ((lv.hosts || [])[0] || "").replace("主播：", "");
-        hd.innerHTML =
-          '<a class="headline" href="play.html?id=' + lv.id + '">' +
-            '<div class="hl-cover">' +
-              '<img class="hl-cover-img" src="covers/' + lv.id + '.webp" alt="' + Store.esc(lv.title) + '" />' +
-              '<span class="hl-tag">最新一期</span>' +
-              '<span class="hl-no">第' + lno + '期</span>' +
-              '<span class="hl-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>' +
-            '</div>' +
-            '<div class="hl-body">' +
-              '<div class="hl-title">' + lv.title.replace(/^第\d+期 · /, "") + '</div>' +
-              '<div class="hl-meta">' +
-                (lhost ? '<span class="hl-host">' + lhost + '</span><span class="sep"></span>' : '') +
-                '<span class="hl-date">' + lv.date + '</span>' +
+      function esc(s){ var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+      function hostName(v){ return ((v.hosts||[])[0]||"").replace("主播：",""); }
+      function noOf(id){ return (id.match(/\d+/)||["0"])[0]; }
+
+      // ===== 头条：最新一期（杂志开页）=====
+      var fw = document.getElementById("featureWrap");
+      if (fw && videos[0]) {
+        var v0 = videos[0];
+        var n0 = noOf(v0.id);
+        var h0 = hostName(v0);
+        var t0 = v0.title.replace(/^第\d+期 · /, "");
+        var d0 = (v0.desc||"").replace(/^主播[^：:]*[:：]\s*/, "").replace(/^第\d+期[·:：]\s*/, "");
+        fw.innerHTML =
+          '<a class="feature reveal in" href="play.html?id=' + v0.id + '">' +
+            '<div class="copy">' +
+              '<div class="fk">本期封面 · COVER STORY</div>' +
+              '<div class="en">Issue No.' + n0 + ' · ' + (v0.date||"") + '</div>' +
+              '<h1>' + t0 + '</h1>' +
+              '<div class="rule"></div>' +
+              '<div class="fm">' +
+                (h0 ? '<span class="host">' + esc(h0) + '</span><span class="fs"></span>' : '') +
+                '<span>' + (v0.date||"") + '</span>' +
               '</div>' +
+              '<p class="fd">' + esc(d0) + '</p>' +
+              '<span class="btn"><span class="ic"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>观看本期</span>' +
+            '</div>' +
+            '<div class="art">' +
+              '<span class="eb">第 ' + n0 + ' 期</span>' +
+              '<img src="covers/' + v0.id + '.webp" alt="' + esc(v0.title) + '" />' +
+              '<div class="veil"></div>' +
             '</div>' +
           '</a>';
       }
 
+      // ===== 全部期数：瀑布流封面 =====
       var counts = await Store.getAllCommentCounts();
+      function poster(v) {
+        var no = noOf(v.id).padStart(2, "0");
+        var host = hostName(v);
+        var title = v.title.replace(/^第\d+期 · /, "");
+        return '<a class="poster reveal" href="play.html?id=' + v.id + '">' +
+          '<div class="ph">' +
+            '<span class="ep">第 ' + no + ' 期</span>' +
+            '<img src="covers/' + v.id + '.webp" alt="' + esc(v.title) + '" loading="lazy" />' +
+            '<span class="pl"><i><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></i></span>' +
+          '</div>' +
+          '<h3 class="ttl">' + esc(title) + '</h3>' +
+          '<div class="pd">' +
+            (host ? '<span class="nm">' + esc(host) + '</span><span class="ln"></span>' : '') +
+            '<span>' + v.date + '</span>' +
+            (counts && counts[v.id] ? '<span class="ln"></span><span>' + (counts[v.id]||0) + ' 评论</span>' : '') +
+          '</div>' +
+        '</a>';
+      }
+
       function renderList(q) {
         q = (q || "").trim().toLowerCase();
         var arr = videos.filter(function (v) {
@@ -132,28 +167,10 @@
           return hay.indexOf(q) !== -1;
         });
         if (!arr.length) {
-          list.innerHTML = '<p class="gb-empty">没有找到匹配「' + Store.esc(q) + '」的视频。</p>';
+          list.innerHTML = '<p class="gb-empty" style="text-align:center;grid-column:1/-1;">没有找到匹配「' + Store.esc(q) + '」的视频。</p>';
           return;
         }
-        list.innerHTML = arr.map(function (v) {
-          var no = (v.id.match(/\d+/) || ["0"])[0].padStart(2, "0");
-          var host = ((v.hosts || [])[0] || "").replace("主播：", "");
-          return '<a class="vcard reveal" href="play.html?id=' + v.id + '">' +
-            '<div class="cover">' +
-              '<img class="cover-img" src="covers/' + v.id + '.webp" alt="' + Store.esc(v.title) + '" loading="lazy" />' +
-              '<span class="no">' + no + '</span>' +
-              (host ? '<span class="host-seal">' + host + '</span>' : '') +
-              '<span class="play-ic"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>' +
-            '</div>' +
-            '<div class="vbody">' +
-              '<div class="vtitle">' + v.title + '</div>' +
-              '<div class="vmeta">' +
-                '<span class="vdate">' + v.date + '</span>' +
-                '<span class="vcomments"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> ' + (counts[v.id] || 0) + '</span>' +
-              '</div>' +
-            '</div>' +
-          '</a>';
-        }).join('');
+        list.innerHTML = arr.map(poster).join('');
         if (window.__revealInit) window.__revealInit(list, { instant: !!q });
       }
       renderList("");

@@ -16,3 +16,8 @@ push-log.txt
 
 # MediaPipe 模型（可重新下载）
 .models/
+
+# 本地预览/设计草稿（不入库）
+.design/
+.uipreview/
+.uip2/
