@@ -11,8 +11,8 @@
   /* 深夜演播室色板（v67）：深蓝夜空 + 演播蓝 + 电台金 + 信号红 */
   --paper: #0a0f1c;
   --paper-deep: #070b15;
-  --card-bg: rgba(23, 36, 60, .55);
-  --card-solid: #16223c;
+  --card-bg: #101a2e;
+  --card-solid: #101a2e;
   --ink: #eef2f8;
   --ink-soft: #9fb0c8;
   --ink-faint: #66748f;
@@ -21,8 +21,8 @@
   --gold: #e8c15a;
   --gold-soft: #f0d488;
   --signal: #ff5c4d;
-  --line: rgba(255, 255, 255, .10);
-  --line-soft: rgba(255, 255, 255, .06);
+  --line: rgba(255, 255, 255, .09);
+  --line-soft: rgba(255, 255, 255, .05);
 
   --font-display: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
   --font-body: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -70,7 +70,7 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-body);
-  background: rgba(255, 255, 255, .05);
+  background: #0c1425;
   color: var(--ink);
   line-height: 1.65;
   min-height: 100vh;
@@ -78,7 +78,7 @@ body {
   position: relative;
 }
 
-/* ---- 深夜演播室背景：夜空渐变 + 金色光晕 + 星点（v67） ---- */
+/* ---- 深夜舞台：近纯深底 + 顶部一处冷光（v71 精修：去星点去噪，收敛干净） ---- */
 body::before {
   content: '';
   position: fixed;
@@ -86,41 +86,31 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(1100px 500px at 80% -10%, rgba(59, 130, 196, .16), transparent 60%),
-    radial-gradient(900px 460px at 12% 8%, rgba(232, 193, 90, .09), transparent 55%),
-    radial-gradient(700px 900px at 50% 120%, rgba(59, 130, 196, .10), transparent 60%),
-    linear-gradient(180deg, #0a0f1c 0%, #0b1222 55%, #0a0f1c 100%);
+    radial-gradient(1200px 620px at 78% -12%, rgba(59, 130, 196, .13), transparent 62%),
+    radial-gradient(900px 480px at 8% -6%, rgba(232, 193, 90, .06), transparent 58%),
+    linear-gradient(180deg, #0a0f1c 0%, #090e19 60%, #070b15 100%);
 }
-/* 星点闪烁（极淡，低 GPU 消耗） */
+/* 极细腻噪点（替代星点：提升质感不抢戏） */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: .5;
-  background-image:
-    radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.5) 50%, transparent 51%),
-    radial-gradient(1px 1px at 28% 64%, rgba(255,255,255,.32) 50%, transparent 51%),
-    radial-gradient(1.4px 1.4px at 42% 32%, rgba(255,255,255,.4) 50%, transparent 51%),
-    radial-gradient(1px 1px at 58% 78%, rgba(255,255,255,.28) 50%, transparent 51%),
-    radial-gradient(1.2px 1.2px at 66% 22%, rgba(255,255,255,.38) 50%, transparent 51%),
-    radial-gradient(1px 1px at 78% 52%, rgba(255,255,255,.30) 50%, transparent 51%),
-    radial-gradient(1.4px 1.4px at 88% 82%, rgba(255,255,255,.34) 50%, transparent 51%),
-    radial-gradient(1px 1px at 8% 88%, rgba(255,255,255,.26) 50%, transparent 51%),
-    radial-gradient(1.2px 1.2px at 94% 12%, rgba(255,255,255,.30) 50%, transparent 51%);
-  background-size: 240px 240px;
+  opacity: .22;
+  background-image: radial-gradient(rgba(255, 255, 255, .35) 1px, transparent 1.3px);
+  background-size: 4px 4px;
+  mix-blend-mode: overlay;
 }
-/* 顶部品牌三色条（演播台灯带） */
+/* 顶部品牌三色条（演播台灯带）—— 收敛为细线 + 微弱光 */
 #top-tape {
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 3px;
+  height: 2px;
   z-index: 999;
-  background: linear-gradient(90deg, var(--brand) 0%, var(--gold) 45%, var(--signal) 75%, var(--brand) 100%);
-  opacity: .9;
+  background: linear-gradient(90deg, transparent, rgba(232,193,90,.7) 30%, rgba(59,130,196,.7) 60%, rgba(255,92,77,.5) 90%, transparent);
+  opacity: .85;
   pointer-events: none;
-  box-shadow: 0 0 18px rgba(232, 193, 90, .35);
 }
 
 main, nav.topbar, footer.footer, #gate > .box, section.player-card,
@@ -204,8 +194,8 @@ nav.topbar {
   top: 0;
   z-index: 100;
   background: rgba(10, 15, 28, .82);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
   border-bottom: 1px solid var(--line);
 }
 .topbar .wrap {
@@ -422,7 +412,7 @@ nav.topbar {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: var(--shadow-md);
   transition: transform .3s cubic-bezier(.22, 1, .36, 1), box-shadow .3s, border-color .3s;
 }
 .headline:hover {
@@ -592,7 +582,7 @@ nav.topbar {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: var(--shadow-sm);
   position: relative;
   transition: transform .28s cubic-bezier(.22, 1, .36, 1), box-shadow .28s, border-color .28s;
 }
@@ -667,7 +657,7 @@ nav.topbar {
   border: 1px solid rgba(240, 212, 136, .35);
   border-radius: 10px;
   background: rgba(10, 15, 28, .32);
-  backdrop-filter: blur(2px);
+
 }
 .vcard:hover .cover .no {
   transform: translateY(-3px) scale(1.06);
@@ -1209,7 +1199,7 @@ section.player-card { margin: 0 auto 14px; }
   border-radius: var(--radius-lg);
   padding: 40px 38px;
   text-align: center;
-  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: var(--shadow-lg);
   max-width: 400px;
   width: 92%;
   position: relative;
@@ -1275,7 +1265,7 @@ section.player-card { margin: 0 auto 14px; }
   border-radius: 10px;
   font-size: 16px;
   outline: none;
-  background: rgba(255, 255, 255, .05);
+  background: #0c1425;
   margin-bottom: 14px;
   transition: border-color .2s, box-shadow .2s;
   position: relative;
@@ -1324,7 +1314,7 @@ section.player-card { margin: 0 auto 14px; }
 #gate .rules {
   max-height: 38vh;
   overflow-y: auto;
-  background: rgba(255, 255, 255, .05);
+  background: #0c1425;
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 14px 16px;
@@ -1515,7 +1505,7 @@ footer.footer .wrap {
   font-size: 14px;
   font-family: inherit;
   outline: none;
-  background: rgba(255, 255, 255, .05);
+  background: #0c1425;
   transition: border-color .2s, box-shadow .2s;
   margin-bottom: 10px;
   box-sizing: border-box;
@@ -1534,7 +1524,7 @@ footer.footer .wrap {
   font-size: 14px;
   font-family: inherit;
   outline: none;
-  background: rgba(255, 255, 255, .05);
+  background: #0c1425;
   transition: border-color .2s, box-shadow .2s;
   margin-bottom: 10px;
 }
@@ -1647,7 +1637,7 @@ footer.footer .wrap {
   font-size: 14px;
   font-family: inherit;
   outline: none;
-  background: rgba(255, 255, 255, .05);
+  background: #0c1425;
   margin-bottom: 10px;
   transition: border-color .2s, box-shadow .2s;
 }
@@ -1835,7 +1825,7 @@ table.data-table td {
   padding: 12px 20px 12px 42px;
   border: 1.5px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, .06);
+  background: #0c1425;
   font-size: 15px;
   color: var(--ink);
   outline: none;
@@ -1845,7 +1835,7 @@ table.data-table td {
 .search-input:focus {
   border-color: var(--gold-soft);
   box-shadow: 0 0 0 4px rgba(232, 193, 90, .17);
-  background: rgba(255, 255, 255, .09);
+  background: #0e1830;
 }
 /* 搜索框放大镜图标（内联背景 SVG） */
 .search-input {
@@ -1991,8 +1981,8 @@ section.player-card video { -webkit-tap-highlight-color: transparent; }
   text-shadow: 0 6px 40px rgba(0,0,0,.55);
 }
 .headline .hl-cover .hl-tag {
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+
+
   background: rgba(10,15,28,.5);
   border: 1px solid rgba(255,255,255,.18);
 }
