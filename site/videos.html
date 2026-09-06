@@ -48,7 +48,7 @@
       <div class="search-wrap">
         <input type="search" id="search" class="search-input" placeholder="搜索视频（标题 / 主播 / 简介 / 期号）" autocomplete="off" />
       </div>
-      <div class="stage mflow" id="list"><!-- poster 由 videos.js 数据渲染 --></div>
+      <div class="mflow" id="list"><!-- poster 由 videos.js 数据渲染 --></div>
     </section>
   </main>
 
@@ -109,6 +109,27 @@
         '</a>';
       }
 
+      // 当前版式（mflow 瀑布流 / vgrid 整齐网格）
+      var curView = "mflow";
+      function applyView(view) {
+        curView = view;
+        list.className = view;   // mflow | vgrid（各自定义 display）
+        var btns = document.querySelectorAll(".vt-btn");
+        for (var i = 0; i < btns.length; i++) {
+          var on = btns[i].getAttribute("data-view") === view;
+          btns[i].className = "vt-btn" + (on ? " active" : "");
+          btns[i].setAttribute("aria-selected", on ? "true" : "false");
+        }
+        renderList(search ? search.value : "");
+      }
+
+      // 响应式列数
+      function colsFor(width) {
+        if (width < 900) return 2;
+        if (width < 1200) return 3;
+        return 4;
+      }
+
       function renderList(q) {
         q = (q || "").trim().toLowerCase();
         var arr = videos.filter(function (v) {
@@ -120,25 +141,27 @@
           list.innerHTML = '<p class="gb-empty" style="text-align:center;">没有找到匹配「' + Store.esc(q) + '」的视频。</p>';
           return;
         }
-        list.innerHTML = arr.map(poster).join('');
-        if (window.__revealInit) window.__revealInit(list, { instant: !!q });
-      }
-
-      // 当前版式（mflow 瀑布流 / vgrid 整齐网格）
-      var curView = "mflow";
-      function applyView(view) {
-        curView = view;
-        list.className = "stage " + view;
-        var btns = document.querySelectorAll(".vt-btn");
-        for (var i = 0; i < btns.length; i++) {
-          var on = btns[i].getAttribute("data-view") === view;
-          btns[i].className = "vt-btn" + (on ? " active" : "");
-          btns[i].setAttribute("aria-selected", on ? "true" : "false");
+        var html = arr.map(poster).join('');
+        if (curView === "mflow") {
+          // 瀑布流：轮流分发到 N 列（横向顺序 1,2,3 | 4,5,6 …）
+          var n = colsFor(window.innerWidth || 1200);
+          var tmp = document.createElement("div");
+          tmp.innerHTML = html;
+          var pcs = tmp.querySelectorAll(".poster");
+          var cols = [];
+          for (var c = 0; c < n; c++) cols.push("");
+          for (var k = 0; k < pcs.length; k++) cols[k % n] += pcs[k].outerHTML;
+          list.innerHTML = cols.map(function (c) { return '<div class="mcol">' + c + '</div>'; }).join('');
+        } else {
+          list.innerHTML = html;
         }
-        renderList(search ? search.value : "");
+        if (window.__revealInit) window.__revealInit(list, { instant: !!q });
       }
       renderList("");
       if (search) search.addEventListener("input", function () { renderList(search.value); });
+      window.addEventListener("resize", function () {
+        if (curView === "mflow") renderList(search ? search.value : "");
+      });
       var toggle = document.getElementById("viewToggle");
       if (toggle) toggle.addEventListener("click", function (e) {
         var btn = e.target.closest ? e.target.closest(".vt-btn") : null;

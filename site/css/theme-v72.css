@@ -190,8 +190,8 @@ main.wrap,.section{max-width:1320px}
   box-shadow:0 2px 12px rgba(217,179,106,.35);
 }
 
-/* ============ 列表容器：两种版式（v72-3） ============
-   .mflow = 瀑布流（封面原比例，画廊感，少量精选）
+/* ============ 列表容器：两种版式（v72-4） ============
+   .mflow = 瀑布流（JS 分列到 .mcol，横向顺序可读、不跳动）
    .vgrid = 整齐网格（统一 16:10 裁切，归档浏览）
    默认旧 class .vlist/.stage 兼容为网格 */
 
@@ -202,22 +202,22 @@ main.wrap,.section{max-width:1320px}
   gap:36px 24px;
   max-width:none;padding:0;margin:0;
 }
-/* ---- 瀑布流 ---- */
+/* ---- 瀑布流：flex 多列容器，卡片由 JS 轮流分发到 .mcol ---- */
 .mflow{
-  column-count:3;column-gap:26px;
+  display:flex;gap:26px;align-items:flex-start;
   max-width:none;padding:0;margin:0;
 }
-.mflow .poster{
-  break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:36px;
+.mflow .mcol{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;
 }
+.mflow .mcol .poster + .poster{margin-top:36px}
 .mflow .poster .ph{
   aspect-ratio:auto;
 }
 .mflow .poster .ph img{
   position:static;width:100%;height:auto;object-fit:cover;
 }
-@media(max-width:1100px){.mflow{column-count:2}}
-@media(max-width:720px){.mflow{column-count:1}}
 .poster{
   position:relative;display:block;text-decoration:none;color:inherit;cursor:pointer;
   margin:0;

@@ -61,7 +61,7 @@
       <div class="search-wrap reveal in">
         <input type="search" id="search" class="search-input" placeholder="搜索视频（标题 / 主播 / 简介 / 期号）" autocomplete="off" />
       </div>
-      <div class="stage mflow" id="list"><!-- poster 由 videos.js 数据渲染 --></div>
+      <div class="mflow" id="list"><!-- poster 由 videos.js 数据渲染 --></div>
     </section>
 
     <section class="section" id="about">
@@ -169,10 +169,10 @@
 
       // 当前版式（mflow 瀑布流 / vgrid 整齐网格）
       var curView = "mflow";
+      var colCount = 3;
       function applyView(view) {
         curView = view;
-        list.className = "stage " + view;
-        // 更新按钮态
+        list.className = view;   // mflow | vgrid（各自定义 display）
         var btns = document.querySelectorAll(".vt-btn");
         for (var i = 0; i < btns.length; i++) {
           var on = btns[i].getAttribute("data-view") === view;
@@ -180,6 +180,14 @@
           btns[i].setAttribute("aria-selected", on ? "true" : "false");
         }
         renderList(search ? search.value : "");
+      }
+
+      // 响应式列数
+      function colsFor(width) {
+        if (width < 560) return 2;
+        if (width < 900) return 2;
+        if (width < 1200) return 3;
+        return 4;
       }
 
       function renderList(q) {
@@ -193,11 +201,34 @@
           list.innerHTML = '<p class="gb-empty" style="text-align:center;">没有找到匹配「' + Store.esc(q) + '」的视频。</p>';
           return;
         }
-        list.innerHTML = arr.map(poster).join('');
+        var html = arr.map(poster).join('');
+
+        if (curView === "mflow") {
+          // 瀑布流：平均分成 N 列，各列内自上而下，底部参差自然
+          var n = colsFor(window.innerWidth || 1200);
+          var cols = [];
+          for (var c = 0; c < n; c++) cols.push("");
+          // 直接按序均分：取第 i 个 poster 的 HTML
+          var per = Math.ceil(arr.length / n);
+          var pieces = [];
+          // 借助临时容器切分
+          var tmp = document.createElement("div");
+          tmp.innerHTML = html;
+          var pcs = tmp.querySelectorAll(".poster");
+          for (var k = 0; k < pcs.length; k++) {
+            cols[k % n] += pcs[k].outerHTML; // 轮流分发 → 横向顺序 1,2,3 | 4,5,6
+          }
+          list.innerHTML = cols.map(function (c) { return '<div class="mcol">' + c + '</div>'; }).join('');
+        } else {
+          list.innerHTML = html;
+        }
         if (window.__revealInit) window.__revealInit(list, { instant: !!q });
       }
       renderList("");
       if (search) search.addEventListener("input", function () { renderList(search.value); });
+      window.addEventListener("resize", function () {
+        if (curView === "mflow") renderList(search ? search.value : "");
+      });
 
       // 版式切换
       var toggle = document.getElementById("viewToggle");
